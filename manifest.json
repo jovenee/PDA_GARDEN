@@ -1,0 +1,24 @@
+{
+  "name": "예니의 디지털 정원 (Personal Digital Archive)",
+  "short_name": "예니 PDA",
+  "description": "로컬 퍼스트 아키텍처 기반의 개인 디지털 정원 및 인사이트 아카이빙 PWA 웹 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f9f8f3",
+  "theme_color": "#588b67",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23588b67'/><text x='50' y='62' font-size='42' text-anchor='middle' fill='white'>🌿</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23588b67'/><text x='50' y='62' font-size='42' text-anchor='middle' fill='white'>🌿</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
