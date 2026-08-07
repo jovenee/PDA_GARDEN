@@ -688,8 +688,8 @@
         <input type="file" id="profile-file-input" accept="image/*">
       </div>
       <div class="sidebar-brand">
-        <h1>예니의 디지털 정원</h1>
-        <p>Standalone Offline Web App</p>
+        <h1 id="garden-brand-title" onclick="window.changeGardenTitle()" style="cursor:pointer;" title="클릭하여 정원 이름 변경">예니의 디지털 정원 <span style="font-size:0.85rem; color:var(--primary); font-weight:normal;">✏️</span></h1>
+        <p style="cursor:pointer;" onclick="window.changeGardenTitle()">Standalone Offline Web App</p>
       </div>
     </div>
     
@@ -1891,7 +1891,30 @@ function initProfile() {
       showToast("프로필 이미지 저장 실패");
     }
   });
+const TITLE_KEY = "my-local-app-title-v1";
+
+function initGardenTitle() {
+  const savedTitle = localStorage.getItem(TITLE_KEY);
+  const titleEl = document.getElementById("garden-brand-title");
+  if (savedTitle && titleEl) {
+    titleEl.innerHTML = esc(savedTitle) + ' <span style="font-size:0.85rem; color:var(--primary); font-weight:normal;">✏️</span>';
+  }
 }
+
+window.changeGardenTitle = function() {
+  const savedTitle = localStorage.getItem(TITLE_KEY);
+  const current = savedTitle || "예니의 디지털 정원";
+  const newTitle = prompt("나만의 디지털 정원 이름을 입력하세요:", current);
+  if (newTitle && newTitle.trim()) {
+    const cleanTitle = newTitle.trim();
+    localStorage.setItem(TITLE_KEY, cleanTitle);
+    const titleEl = document.getElementById("garden-brand-title");
+    if (titleEl) {
+      titleEl.innerHTML = esc(cleanTitle) + ' <span style="font-size:0.85rem; color:var(--primary); font-weight:normal;">✏️</span>';
+    }
+    showToast(`🌿 정원 이름이 '${cleanTitle}'(으)로 변경되었습니다!`);
+  }
+};
 
 async function refreshAll() {
   await loadAllNotes();
@@ -1903,6 +1926,7 @@ async function refreshAll() {
 // ── 초기화 실행 ──
 document.addEventListener("DOMContentLoaded", async () => {
   initProfile();
+  initGardenTitle();
   initImportAction();
 
   try {

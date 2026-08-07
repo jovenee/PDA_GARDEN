@@ -525,8 +525,8 @@
     <div class="sidebar-header">
       <img id="garden-profile-img" class="profile-img-btn" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23588b67'/><text x='50' y='60' font-size='35' text-anchor='middle' fill='white'>🌿</text></svg>" alt="프로필">
       <div class="sidebar-brand">
-        <h1>예니의 지식 정원</h1>
-        <p>Obsidian Publish 스타일</p>
+        <h1 id="garden-brand-title" onclick="window.changeGardenTitle()" style="cursor:pointer;" title="클릭하여 정원 이름 변경">예니의 지식 정원 <span style="font-size:0.85rem; color:var(--primary); font-weight:normal;">✏️</span></h1>
+        <p style="cursor:pointer;" onclick="window.changeGardenTitle()">Obsidian Publish 스타일</p>
       </div>
     </div>
     
@@ -1647,6 +1647,31 @@ function initImportAction() {
   });
 }
 
+const TITLE_KEY = "my-local-app-title-v1";
+
+function initGardenTitle() {
+  const savedTitle = localStorage.getItem(TITLE_KEY);
+  const titleEl = document.getElementById("garden-brand-title");
+  if (savedTitle && titleEl) {
+    titleEl.innerHTML = esc(savedTitle) + ' <span style="font-size:0.85rem; color:var(--primary); font-weight:normal;">✏️</span>';
+  }
+}
+
+window.changeGardenTitle = function() {
+  const savedTitle = localStorage.getItem(TITLE_KEY);
+  const current = savedTitle || "예니의 지식 정원";
+  const newTitle = prompt("나만의 디지털 정원 이름을 입력하세요:", current);
+  if (newTitle && newTitle.trim()) {
+    const cleanTitle = newTitle.trim();
+    localStorage.setItem(TITLE_KEY, cleanTitle);
+    const titleEl = document.getElementById("garden-brand-title");
+    if (titleEl) {
+      titleEl.innerHTML = esc(cleanTitle) + ' <span style="font-size:0.85rem; color:var(--primary); font-weight:normal;">✏️</span>';
+    }
+    showToast(`🌿 정원 이름이 '${cleanTitle}'(으)로 변경되었습니다!`);
+  }
+};
+
 function initProfileImage() {
   const imgEl = document.getElementById("garden-profile-img");
   const saved = localStorage.getItem(PROFILE_KEY);
@@ -1664,6 +1689,7 @@ async function refreshAll() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   initProfileImage();
+  initGardenTitle();
   initImportAction();
 
   try {
