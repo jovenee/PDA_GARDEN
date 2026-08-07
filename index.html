@@ -1891,6 +1891,8 @@ function initProfile() {
       showToast("프로필 이미지 저장 실패");
     }
   });
+}
+
 const TITLE_KEY = "my-local-app-title-v1";
 
 function initGardenTitle() {
@@ -1947,6 +1949,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   if(searchInput) {
     searchInput.addEventListener("input", () => {
       renderSidebarList();
+    });
+  }
+
   // PWA Service Worker 및 설치 프롬프트
   initPWAServiceWorker();
 });

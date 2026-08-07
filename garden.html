@@ -1712,7 +1712,47 @@ document.addEventListener("DOMContentLoaded", async () => {
       handleSearch(e.target.value);
     });
   }
+
+  // PWA Service Worker 및 설치 프롬프트
+  initPWAServiceWorker();
 });
+
+let deferredPrompt = null;
+function initPWAServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
+      }).catch((err) => {
+        console.warn('[PWA] ServiceWorker registration failed:', err);
+      });
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('pwa-install-btn');
+    if (installBtn) installBtn.style.display = 'inline-flex';
+    showToast("📱 '예니 PDA'를 스마트폰/PC 전용 앱으로 설치할 수 있습니다!");
+  });
+}
+
+function installPWAApp() {
+  if (!deferredPrompt) {
+    showToast("이미 설치되어 있거나 브라우저에서 PWA 설치를 지원하지 않는 환경입니다.");
+    return;
+  }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      showToast("🎉 앱 설치가 완료되었습니다!");
+      const installBtn = document.getElementById('pwa-install-btn');
+      if (installBtn) installBtn.style.display = 'none';
+    }
+    deferredPrompt = null;
+  });
+}
 </script>
 </body>
 </html>
