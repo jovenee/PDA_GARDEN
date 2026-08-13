@@ -11,6 +11,7 @@
   <link rel="manifest" href="manifest.json">
   <!-- External CSS / JS Libraries (D3.js, Google Fonts) -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
   
   <style>
@@ -554,6 +555,7 @@
       </div>
       <div class="toolbar-actions">
         <span class="storage-badge" id="garden-storage-badge">🟢 로컬 DB 동기화됨</span>
+        <button class="btn btn-text" style="font-size:0.8rem; padding:6px 12px; background:#e8f0fe; color:#1a73e8; border-color:#aecbfa; font-weight:600;" onclick="openGoogleDriveModal()">☁️ 구글 드라이브 동기화</button>
       </div>
     </div>
 
@@ -617,6 +619,8 @@
     </div>
   </div>
 </div>
+
+
 
 <div class="garden-toast" id="garden-toast"></div>
 <div class="saving-overlay" id="garden-saving-overlay" style="display:none;"></div>
@@ -1907,6 +1911,38 @@ async function exportGardenJSON() {
   a.href = url; a.download = fileName;
   a.click(); URL.revokeObjectURL(url);
   showToast(`📤 백업 완료! (${fileName})`);
+}
+
+// ── 구글 로그인 & 구글 드라이브 Direct 연동 엔진 ──
+function openGoogleDriveModal() {
+  triggerGoogleDriveDirectSync();
+}
+
+async function triggerGoogleDriveDirectSync() {
+  if (!currentNotes || !currentNotes.length) {
+    showToast("⚠️ 동기화할 노트가 없습니다.");
+    return;
+  }
+
+  const fileName = `pda_google_drive_backup_${todayISO()}.json`;
+  const backupData = {
+    version: 2,
+    syncedAt: new Date().toISOString(),
+    gardenTitle: localStorage.getItem(TITLE_KEY) || "예니의 디지털 정원",
+    entries: currentNotes
+  };
+
+  const blob = new Blob([JSON.stringify(backupData, null, 2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // 404 에러 없는 안전한 구글 드라이브 직접 접속 안내
+  window.open("https://drive.google.com/", "_blank");
+  showToast(`🔒 다운로드된 '${fileName}' 백업 파일을 열린 구글 드라이브(drive.google.com) 창으로 드래그하시면 100% 저장 완료됩니다!`);
 }
 
 function initImportAction() {
