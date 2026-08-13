@@ -736,9 +736,8 @@
       </div>
       <div class="toolbar-actions">
         <span class="storage-badge" id="garden-storage-badge">🟢 로컬 DB 동기화됨</span>
-        <button class="btn btn-text" style="font-size:0.8rem; padding:6px 12px; background:#e8f0fe; color:#1a73e8; border-color:#4285f4; font-weight:600;" onclick="openBackupModal()">☁️ 구글 드라이브 동기화</button>
         <button class="btn btn-text" id="pwa-install-btn" style="font-size:0.8rem; padding:6px 12px; background:var(--primary-light); color:var(--primary-hover); border-color:var(--primary); font-weight:600;" onclick="installPWAApp()">📲 앱 설치 (PWA)</button>
-        <button class="btn btn-text" onclick="openBackupModal()" style="font-size:0.8rem; padding:6px 12px;">📤 JSON 백업/복원</button>
+        <button class="btn btn-brand" style="font-size:0.8rem; padding:6px 14px; font-weight:600;" onclick="openBackupModal()">💾 백업 및 복원 (JSON)</button>
       </div>
     </div>
 
@@ -774,40 +773,31 @@
         <span class="legend-item"><span class="legend-dot" style="background:var(--place)"></span>장소</span>
         <span class="legend-item"><span class="legend-dot" style="background:var(--event)"></span>일정</span>
       </div>
-      <div style="flex: 1; position: relative;">
-        <svg id="garden-svg"></svg>
+      <div style="width: 100%; height: 260px; min-height: 260px; position: relative;">
+        <svg id="garden-svg" style="width: 100%; height: 260px; display: block;"></svg>
       </div>
     </div>
   </aside>
 </div>
 
-<!-- Google Identity Services SDK -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<!-- 백업 & 동기화 모달 -->
+<!-- 백업 & 복원 모달 -->
 <div class="garden-modal-overlay" id="garden-backup-modal">
   <div class="garden-modal">
     <div class="garden-modal-header">
-      <h3 style="font-weight:700;">☁️ 내 기기 간 원클릭 동기화 (Google Account Sync)</h3>
+      <h3 style="font-weight:700;">💾 백업 및 복원 (JSON 아카이브)</h3>
       <button class="garden-modal-close" onclick="closeBackupModal()">✕</button>
     </div>
     <div style="font-size:0.85rem; line-height:1.6; color:var(--text-muted); margin-bottom:20px;">
-      노트북 💻, 핸드폰 📱, 아이패드 📲 간에 파일을 주고받을 필요 없이 <strong>구글 계정 로그인 1번으로 자동 동기화</strong>됩니다.<br>
-      모든 기록과 동영상, 사진 데이터는 본인의 구글 드라이브 클라우드와 브라우저 DB에 100% 안전하게 보호됩니다.
+      모든 기록과 이미지, 동영상, 태그는 내 기기(브라우저 IndexedDB & localStorage)에 실시간으로 100% 안전 저장됩니다.<br>
+      노트북 💻, 핸드폰 📱, 아이패드 📲 간에 데이터를 옮기거나 컴퓨터를 변경할 때 백업 파일을 생성하여 1초 만에 복원하실 수 있습니다.
     </div>
     <div style="display:flex; gap:12px; flex-direction:column;">
-      <button class="btn btn-brand" style="padding:14px; background:#4285f4; color:white; border:none; font-weight:600; font-size:0.95rem; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="handleGoogleOneTapSync()">
-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#ffffff" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z"/></svg>
-        구글 계정 원클릭 로그인 & 클라우드 실시간 동기화
+      <button class="btn btn-brand" style="padding:14px; font-weight:600; font-size:0.95rem;" onclick="exportGardenJSON()">
+        📤 내 PDA 데이터 전체 JSON 백업 다운로드
       </button>
 
-      <div style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin:4px 0;">── 수동 백업 / 복원 옵션 ──</div>
-
-      <button class="btn btn-brand" style="padding:10px;" onclick="syncWithGoogleDrive()">☁️ 구글 드라이브 동기화 파일 다운로드 (수동)</button>
-      <button class="btn btn-text" style="padding:10px;" onclick="exportGardenJSON()">📤 내 PC에 JSON 백업 파일 저장</button>
-      
-      <label class="btn btn-text" style="padding:10px; cursor:pointer; text-align:center; border-color:#4285f4; color:#1a73e8;">
-        📥 구글 드라이브 / 백업 파일 선택하여 복원
+      <label class="btn btn-text" style="padding:13px; cursor:pointer; text-align:center; border-color:var(--primary); color:var(--primary-hover); font-weight:600;">
+        📥 백업 JSON 파일 선택하여 100% 원본 복원
         <input type="file" id="garden-import-input" accept=".json" style="display:none">
       </label>
     </div>
@@ -820,14 +810,15 @@
 const STORAGE_KEY = "my-local-app-data-v1";
 const PROFILE_KEY = "my-local-app-profile-v1";
 
+// 폴 에크먼(Paul Ekman, 1992) 7대 기본 감정 이론 기반 표준화 감정 범주
 const EMOTIONS = [
-  { id:"joy", emoji:"😊", label:"기쁨", orbClass:"orb-joy" },
-  { id:"excited", emoji:"✨", label:"설렘", orbClass:"orb-excited" },
-  { id:"calm", emoji:"😌", label:"평온", orbClass:"orb-calm" },
-  { id:"sad", emoji:"😢", label:"슬픔", orbClass:"orb-sad" },
-  { id:"tense", emoji:"😰", label:"긴장", orbClass:"orb-tense" },
-  { id:"angry", emoji:"😤", label:"화남", orbClass:"orb-angry" },
-  { id:"miss", emoji:"🧸", label:"그리움", orbClass:"orb-miss" },
+  { id: "joy", emoji: "😊", label: "기쁨", orbClass: "orb-joy" },
+  { id: "sadness", emoji: "😢", label: "슬픔", orbClass: "orb-sad" },
+  { id: "anger", emoji: "😤", label: "분노", orbClass: "orb-angry" },
+  { id: "fear", emoji: "😱", label: "두려움", orbClass: "orb-tense" },
+  { id: "disgust", emoji: "🤢", label: "혐오", orbClass: "orb-calm" },
+  { id: "surprise", emoji: "😲", label: "놀람", orbClass: "orb-excited" },
+  { id: "contempt", emoji: "😒", label: "경멸", orbClass: "orb-miss" },
 ];
 
 const CATEGORIES = ["일기", "메모", "아이디어", "공부"];
@@ -922,14 +913,24 @@ function parseMetadataFromText(text) {
     }
   }
 
-  // 2. 인물 태그 정밀 추출 (오효정 교수님, 오효정, 오교수님 등)
+  // 2. 인물 태그 정밀 추출 (성씨+이름 정밀 검증, 대명사/어미/동사 100% 차단)
   const excludePeople = new Set([
     "오늘", "어제", "내일", "사람", "시간", "생각", "카페", "학교", "회사", "마음", "기분", 
     "이번", "지난", "다음", "노트", "일기", "정원", "점심", "저녁", "아침", "식사", "함께", 
-    "진수당", "전북대", "서울대", "연세대", "고려대", "사진", "동영상", "하루", "시간"
+    "진수당", "전북대", "서울대", "연세대", "고려대", "사진", "동영상", "하루", "근처", "치킨",
+    "맥주", "치맥", "치킨집", "보냈다", "먹으며", "즐거운", "행복한", "시간을", "3명", "3명이", "명", "명이",
+    "논문", "위해서", "활용해서", "만들었다", "프로토타입", "안티그래비티", "PDA", "연구", "프로젝트",
+    "우리", "가족", "저희", "마시며", "먹고", "구경했다", "마무리했다", "돌아와", "횟집", "해수욕장"
   ]);
 
-  const topicCandidates = ["김밥", "라면", "치킨", "피자", "커피", "음료", "영화", "음악", "운동", "공부", "창업", "맛집", "아이디어", "디자인", "연구"];
+  const verbExcludes = [
+    "점심을", "저녁을", "식사를", "먹고", "갔다", "왔다", "했다", "이고", "하며", "에서", "으로", "로써", 
+    "카페를", "학교를", "함께", "좋아해", "좋아하고", "좋아한다", "먹었다", "먹고", "먹으며", "보냈다", 
+    "즐거운", "행복한", "좋은", "근처에서", "치킨집에서", "위해서", "활용해서", "만들었다", "하였다", "되었다",
+    "마시며", "마무리했다", "구경했다", "돌아와"
+  ];
+
+  const topicCandidates = ["김밥", "라면", "치킨", "피자", "커피", "음료", "영화", "음악", "운동", "공부", "창업", "맛집", "아이디어", "디자인", "연구", "치맥", "논문", "프로토타입", "안티그래비티", "PDA", "불꽃놀이", "여행"];
 
   // 본문에 주제 관련 명사가 있으면 '주제 키워드(keywords)'로 추출
   topicCandidates.forEach(topic => {
@@ -938,9 +939,7 @@ function parseMetadataFromText(text) {
     }
   });
 
-  const verbExcludes = ["점심을", "저녁을", "식사를", "먹고", "갔다", "왔다", "했다", "이고", "하며", "에서", "으로", "로써", "카페를", "학교를", "함께", "좋아해", "좋아하고", "좋아한다", "먹었다", "먹고"];
-
-  // '오효정 교수님', '오효정교수님', '오교수님', '김군도' 정규식 분석
+  // '오효정 교수님', '오효정교수님', '오교수님', '김군도', '박진영', '이예은' 등 직함 정규식 분석
   const fullNameWithTitleRegex = /([가-힣]{2,4}\s*(?:교수님|교수|부장님|부장|선생님|선배|후배|팀장님|팀장|님))/g;
   let matchFull;
   while ((matchFull = fullNameWithTitleRegex.exec(text)) !== null) {
@@ -950,21 +949,27 @@ function parseMetadataFromText(text) {
     }
   }
 
-  // 쉼표나 일반 인명 나열 파싱
-  const verbSuffixRegex = /(?:만나서|구상했다|먹었다|갔다|왔다|했다|이고|하며|에서|으로|로써|까지|부터|하고| 좋아해|좋아하고|좋아한다|점심으로|저녁으로)$/;
+  // 동사 어미, 접속어, 수식어 패턴 (위해서, 활용해서, 마시며, 구경했다 등 100% 차단)
+  const verbSuffixRegex = /(?:만나서|구상했다|먹었다|갔다|왔다|했다|이고|하며|에서|으로|로써|까지|부터|하고|좋아해|좋아하고|좋아한다|점심으로|저녁으로|먹으며|보냈다|즐거운|해서|위해서|활용해서|만들었다|하였다|되었다|있다|없다|니다|습니다|는다|였다|았다|었다|관해|대해|따라|통해|마시며|마무리했다|구경했다)$/;
 
   const rawTokens = text.split(/[\s.\n]+/);
   rawTokens.forEach(token => {
+    if (/^\d+명/.test(token)) return;
+
     const commaParts = token.split(',');
     commaParts.forEach(part => {
-      let rawName = part.trim().replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '');
+      let rawName = part.trim().replace(/^\d+명/g, '').replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '');
       if (!rawName) return;
 
       if (excludePeople.has(rawName) || verbExcludes.includes(rawName) || topicCandidates.includes(rawName) || verbSuffixRegex.test(rawName)) return;
 
       let clean = rawName.replace(/(?:님|교수님|교수|부장|선배|후배|과|와|이랑|하고|이|가|은|는|한테|에게|과함께|와함께)$/g, '').trim();
       if (clean.length >= 2 && clean.length <= 4 && !excludePeople.has(clean) && !verbExcludes.includes(clean) && !topicCandidates.includes(clean) && !verbSuffixRegex.test(clean)) {
-        if (/^[가-힣]{2,4}$/.test(clean)) {
+        // 한국어 성씨 인명 패턴 확인
+        const isKoreanNamePattern = /^[김|이|박|최|정|강|조|윤|장|임|한|오|서|신|권|황|안|송|류|홍|전|고|문|양|손|배|백|허|유|남|심|노|하|곽|성|차|주|우|구|나|민|유|진|지|엄|채|원|천|방|현|함|변|염|추|도|선|설|마|길|연|표|명|기|반|왕|금|인|맹|제|모|예][가-힣]{1,3}$/.test(clean);
+        const isExplicitKnownPerson = ["예니", "이옌", "이예은", "예은", "오교수님", "김군도", "박진영"].includes(clean);
+        
+        if (isKoreanNamePattern || isExplicitKnownPerson) {
           const isSubsumed = result.people.some(p => p.includes(clean) || clean.includes(p));
           if (!isSubsumed) {
             result.people.push(clean);
@@ -974,43 +979,51 @@ function parseMetadataFromText(text) {
     });
   });
 
-  // 인물 동의어 / 별칭 (Alias) 자동 통합 사전
+  // 인물 동의어 / 별칭 (Alias) 대표명으로 100% 통합
   const PERSON_ALIAS_MAP = {
     "예니": "이예은 (나)",
     "이옌": "이예은 (나)",
     "이예은": "이예은 (나)",
     "예은": "이예은 (나)",
+    "이예": "이예은 (나)"
   };
 
-  // 인물 중복 정리, 별칭(예니, 이옌 -> 이예은 (나)) 대표명으로 100% 통합
   result.people = result.people.map(p => {
     const cleanP = p.replace(/(?:를|을|에서|으로|와|과|랑|하고)$/g, '').trim();
     return PERSON_ALIAS_MAP[cleanP] || cleanP;
   }).filter((person, idx, self) => {
     if (!person || person.length < 2) return false;
     if (result.events.includes(person) || excludePeople.has(person) || verbExcludes.includes(person)) return false;
-    return self.indexOf(person) === idx; // 대표 이름으로 중복 제거
+    return self.indexOf(person) === idx;
   });
 
-  // 3. 장소 태그 추출
-  const knownPlaces = ["서울", "부산", "제주", "전북대", "진수당", "강남", "홍대", "성수", "판교", "연구실", "실험실", "강의실", "도서관", "집", "회사", "사무실", "카페", "식당", "영화관", "헬스장", "스터디룸", "공원", "학교", "병원"];
+  // 3. 장소 태그 추출 (독립 단어 경계 및 '횟집'에서 '집' 분리되는 버그 완전 차단)
+  const knownPlaces = ["서울", "부산", "제주", "전북대", "진수당", "강남", "홍대", "성수", "판교", "연구실", "실험실", "강의실", "도서관", "회사", "사무실", "카페", "식당", "영화관", "헬스장", "스터디룸", "공원", "학교", "병원", "해수욕장", "호텔"];
+  
   knownPlaces.forEach(pl => {
     if (text.includes(pl) && !result.places.includes(pl)) {
       result.places.push(pl);
     }
   });
 
-  const placeSuffixRegex = /([가-힣a-zA-Z0-9]{2,8}(?:역|카페|공원|사무실|학교|대|당|도서관|식당|병원|센터|관|지점|빌딩|룸|마을|점))/g;
+  // '집' 단어는 '횟집', '맛집' 등에 잘려 들어가지 않도록 혜안 독립 단어(집에, 집에서, 우리 집 등)만 추출
+  if (/(?:^|\s|가족|우리)(?:집에|집에서|집으로|집|내집)(?:\s|$|,|\.)/.test(text) || text.includes(" 우리집")) {
+    if (!result.places.includes("집") && !text.includes("횟집") && !text.includes("맛집")) {
+      result.places.push("집");
+    }
+  }
+
+  const placeSuffixRegex = /([가-힣a-zA-Z0-9]{2,8}(?:역|카페|공원|사무실|학교|대|당|도서관|식당|병원|센터|관|지점|빌딩|룸|마을|점|해수욕장|호텔))/g;
   let matchPl;
   while ((matchPl = placeSuffixRegex.exec(text)) !== null) {
     const place = matchPl[1];
-    if (!excludePeople.has(place) && !result.places.includes(place)) {
+    if (!excludePeople.has(place) && !result.places.includes(place) && place !== "횟집") {
       result.places.push(place);
     }
   }
 
   // 4. 일정/이벤트 태그 추출
-  const knownEvents = ["점심", "저녁", "식사", "세미나", "워크숍", "미팅", "회의", "발표", "데이트", "운동", "면접", "스터디", "여행", "콘서트", "축제", "시험", "과제", "생일", "파티", "프로젝트"];
+  const knownEvents = ["점심", "저녁", "식사", "세미나", "워크숍", "미팅", "회의", "발표", "데이트", "운동", "면접", "스터디", "여행", "콘서트", "축제", "시험", "과제", "생일", "파티", "프로젝트", "불꽃놀이"];
   knownEvents.forEach(ev => {
     if (text.includes(ev) && !result.events.includes(ev)) {
       result.events.push(ev);
@@ -1019,9 +1032,9 @@ function parseMetadataFromText(text) {
 
   // 5. 감정 키워드 매핑
   const emotionKeywords = {
-    joy: ["기쁘", "행복", "좋았", "즐겁", "최고", "성공", "만족", "웃음", "신나", "감사", "뿌듯", "흐뭇", "기분좋", "신남", "맛있", "점심"],
-    excited: ["설레", "기대", "두근", "설렘", "새로운", "시작", "원하던", "꿈꾸", "기대된", "가슴이", "첫만남"],
-    calm: ["평온", "조용", "편안", "휴식", "아늑", "여유", "힐링", "차분", "상쾌", "안정"],
+    joy: ["기쁘", "행복", "좋았", "즐겁", "최고", "성공", "만족", "웃음", "신나", "감사", "뿌듯", "흐뭇", "기분좋", "신남", "맛있", "점심", "불꽃놀이"],
+    excited: ["설레", "기대", "두근", "설렘", "새로운", "시작", "원하던", "꿈꾸", "기대된", "가슴이", "첫만남", "여행"],
+    calm: ["평온", "조용", "편안", "휴식", "아늑", "여유", "힐링", "차분", "상쾌", "안정", "마무리"],
     sad: ["슬프", "눈물", "우울", "아쉽", "서운", "울었", "상처", "속상", "외롭", "쓸쓸", "자책"],
     tense: ["긴장", "불안", "걱정", "떨리", "부담", "초조", "스트레스", "무섭", "두려", "막막"],
     angry: ["화나", "짜증", "분노", "답답", "열받", "황당", "억울", "빡침", "화가"],
@@ -1035,12 +1048,12 @@ function parseMetadataFromText(text) {
     }
   });
 
-  // 6. 명사 중심 스마트 제목(Title) 자동 생성
+  // 6. 명사 중심 스마트 제목(Title) 품격 요약 알고리즘 고도화
   let cleanContent = text.replace(/(\d{2,4}년\s*)?(\d{1,2}월\s*)?(\d{1,2}일,?\s*)?/g, '').trim();
 
   const titleParts = [];
   if (result.places.length > 0) {
-    titleParts.push(result.places.slice(0, 2).join(' '));
+    titleParts.push(result.places[0]);
   }
   if (result.events.length > 0) {
     titleParts.push(result.events[0]);
@@ -1050,18 +1063,22 @@ function parseMetadataFromText(text) {
     titleParts.push("일기");
   }
 
+  // 진짜 인명이 있을 때만 괄호 추가 (이상한 어미/동사 괄호 원천 차단)
   if (result.people.length > 0) {
-    const peopleStr = result.people.length > 2 
-      ? `(${result.people[0]}, ${result.people[1]} 외)` 
-      : `(${result.people.join(', ')})`;
-    titleParts.push(peopleStr);
+    const validPeople = result.people.filter(p => !["우리", "마시며", "가족"].includes(p));
+    if (validPeople.length > 0) {
+      const peopleStr = validPeople.length > 2 
+        ? `(${validPeople[0]}, ${validPeople[1]} 외)` 
+        : `(${validPeople.join(', ')})`;
+      titleParts.push(peopleStr);
+    }
   }
 
   if (titleParts.length >= 2) {
     result.title = titleParts.join(' ');
   } else {
     const firstSentence = cleanContent.split(/[\n.]/)[0].replace(/[#*`]/g, '').trim();
-    result.title = firstSentence.length > 20 ? firstSentence.slice(0, 20) + "…" : (firstSentence || "오늘의 정원 기록");
+    result.title = firstSentence.length > 18 ? firstSentence.slice(0, 18) + "…" : (firstSentence || "오늘의 정원 기록");
   }
 
   return result;
@@ -1212,7 +1229,26 @@ function filterCategory(cat, el) {
   activeCategoryFilter = cat;
   document.querySelectorAll(".cat-item").forEach(c => c.classList.remove("active"));
   if (el) el.classList.add("active");
+  
   renderSidebarList();
+
+  // 카테고리 변경 시 필터링된 첫 번째 노트를 메인 뷰어에 즉시 자동 로드
+  let filtered = currentNotes;
+  if (cat !== "all") {
+    filtered = currentNotes.filter(n => n.category === cat);
+  }
+  if (filtered.length > 0) {
+    selectNote(filtered[0].id);
+  } else {
+    const container = document.getElementById("content-container");
+    if (container) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="icon">📂</div>
+        <h3>'${cat}' 카테고리에 작성된 노트가 없습니다.</h3>
+        <p>우측 하단의 [✏️ 새 노트 작성] 버튼을 눌러 첫 기록을 써보세요!</p>
+      </div>`;
+    }
+  }
 }
 
 function updateCategoryCounts() {
@@ -1326,6 +1362,69 @@ function renderNoteViewer(note) {
     <div class="note-body-text">${esc(note.text || "본문 내용이 없습니다.")}</div>
 
     ${mediaHtml}
+  `;
+}
+
+// ── 검색 결과 모음 아카이브 뷰어 (인물, 장소, 일정 클릭 시 관련 게시글 주르륵 렌더링) ──
+function displaySearchResultsView(query) {
+  const container = document.getElementById("content-container");
+  if (!container) return;
+
+  const q = String(query || "").trim().toLowerCase();
+  if (!q) return;
+
+  const filtered = currentNotes.filter(n => {
+    const normPeople = (n.people || []).map(normalizePersonName).join(" ");
+    const emoLabels = (n.emotions || []).map(eid => getEmotion(eid)?.label || "").join(" ");
+    const searchHay = [n.title, n.text, n.category, normPeople, emoLabels, ...(n.people||[]), ...(n.places||[]), ...(n.events||[])].join(" ").toLowerCase();
+    return searchHay.includes(q);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>'${esc(query)}' 검색 결과가 없습니다.</h3>
+        <p>다른 키워드나 인물, 장소 태그를 검색해 보세요.</p>
+      </div>`;
+    return;
+  }
+
+  const cardsHtml = filtered.map(note => {
+    const emoChips = (note.emotions || []).map(eid => {
+      const emo = getEmotion(eid);
+      return emo ? `<span class="meta-chip emotion-chip ${emo.id}">${emo.emoji} ${emo.label}</span>` : "";
+    }).join("");
+
+    const snippet = (note.text || "").length > 120 ? (note.text || "").slice(0, 120) + "…" : (note.text || "");
+    const peopleChips = (note.people || []).map(p => `<span class="meta-chip">👤 ${esc(normalizePersonName(p))}</span>`).join("");
+    const placeChips = (note.places || []).map(pl => `<span class="meta-chip">📍 ${esc(pl)}</span>`).join("");
+    const eventChips = (note.events || []).map(ev => `<span class="meta-chip">🎉 ${esc(ev)}</span>`).join("");
+
+    return `
+      <div class="search-result-card" onclick="selectNote('${note.id}')" style="background:var(--bg-panel); border:1px solid var(--border-color); border-radius:12px; padding:18px; margin-bottom:14px; cursor:pointer; transition:all 0.15s ease-in-out;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-main); margin:0;">${esc(note.title)}</h3>
+          <span style="font-size:0.78rem; color:var(--text-muted);">${formatDate(note.date)} · 📂 ${esc(note.category)}</span>
+        </div>
+        <p style="font-size:0.88rem; line-height:1.6; color:var(--text-main); margin-bottom:12px;">${esc(snippet)}</p>
+        <div class="meta-chip-section" style="margin-top:8px;">
+          ${emoChips} ${peopleChips} ${placeChips} ${eventChips}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <div style="margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid var(--primary-light);">
+      <h2 style="font-size:1.3rem; font-weight:700; color:var(--primary-hover); margin-bottom:4px;">
+        🔍 '${esc(query)}' 태그 관련 게시글 모음 (${filtered.length}건)
+      </h2>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">아래 카드를 클릭하시면 해당 노트의 전체 내용으로 이동합니다.</p>
+    </div>
+    <div class="search-results-list">
+      ${cardsHtml}
+    </div>
   `;
 }
 
@@ -1767,9 +1866,15 @@ function renderJarInfographic(notes) {
     e.y = Math.max(e.r + 4, Math.min(H - e.r - 4, e.y));
   });
 
+  // 폴 에크먼(Paul Ekman, 1992) 7대 기본 감정 범주 시각화 색상
   const colorMap = {
-    joy: "#fbbf24", excited: "#f472b6", calm: "#34d399",
-    sad: "#60a5fa", tense: "#a78bfa", angry: "#f87171", miss: "#fb923c"
+    joy: "#fbbf24",       // 기쁨 (노랑)
+    sadness: "#60a5fa",   // 슬픔 (파랑)
+    anger: "#f87171",     // 분노 (빨강)
+    fear: "#a78bfa",      // 두려움 (보라)
+    disgust: "#34d399",   // 혐오 (초록)
+    surprise: "#f472b6",  // 놀람 (분홍)
+    contempt: "#fb923c"   // 경멸 (주황)
   };
 
   const g = svg.append("g");
@@ -1849,25 +1954,42 @@ function closeEmotionPopup() {
   const popup = document.getElementById("emotion-notes-popup");
   if (popup) popup.classList.remove("open");
 }
+// 인물명 동의어/별칭 통합 공통 함수 (이예은, 예니, 이옌, 예은, 이예 -> 이예은 (나))
+function normalizePersonName(name) {
+  if (!name) return '';
+  const clean = String(name).replace(/(?:를|을|에서|으로|와|과|랑|하고)$/g, '').trim();
+  const map = {
+    "예니": "이예은 (나)",
+    "이옌": "이예은 (나)",
+    "이예은": "이예은 (나)",
+    "예은": "이예은 (나)",
+    "이예": "이예은 (나)",
+    "나": "이예은 (나)"
+  };
+  return map[clean] || clean;
+}
 
-// ── D3 지식 네트워크 ──
 function renderGraph(entries) {
   const svg = d3.select("#garden-svg");
   svg.selectAll("*").remove();
 
-  if(!entries.length) return;
+  if (!entries || !entries.length) return;
 
-  const container = document.querySelector(".graph-legend").nextElementSibling;
-  const width = container.clientWidth || 330;
-  const height = container.clientHeight || 280;
-  svg.attr("viewBox", `0 0 ${width} ${height}`);
+  const width = document.getElementById("garden-svg")?.clientWidth || 320;
+  const height = 260;
+  svg.attr("width", "100%").attr("height", height).attr("viewBox", `0 0 ${width} ${height}`);
 
-  const nodes = [], linkKeys = new Set(), links = [], nodeMap = new Map();
-  const nodeRadius = { record:11, person:8, place:8, event:8 };
+  const nodes = [];
+  const links = [];
+  const nodeMap = new Map();
+  const linkKeys = new Set();
+
+  const nodeBaseRadius = { record: 10, person: 8, place: 8, event: 8 };
 
   function addNode(id, label, type, entryId) {
     if (!nodeMap.has(id)) {
-      const node = { id, label, type, entryId: entryId||null, r: nodeRadius[type]||8 };
+      const initialR = (nodeBaseRadius && nodeBaseRadius[type]) ? nodeBaseRadius[type] : 8;
+      const node = { id, label, type, entryId: entryId||null, r: initialR, degree: 1 };
       nodeMap.set(id, node);
       nodes.push(node);
     }
@@ -1881,19 +2003,45 @@ function renderGraph(entries) {
     links.push({ source:sourceId, target:targetId, kind });
   }
 
-  entries.forEach(entry => {
-    const recId = "rec:"+entry.id;
-    const title = entry.title.length > 7 ? entry.title.slice(0,7)+"…" : entry.title;
+  // 1. 노드 및 링크 추가 (이예은 (나) 통합 적용)
+  entries.forEach(rawEntry => {
+    const entry = normalizeEntry(rawEntry);
+    const recId = "rec:" + entry.id;
+    const rawTitle = entry.title || "기록";
+    const title = rawTitle.length > 7 ? rawTitle.slice(0, 7) + "…" : rawTitle;
     addNode(recId, title, "record", entry.id);
-    entry.people.forEach(p => { addNode("person:"+p, p, "person"); addLink(recId, "person:"+p, "tag"); });
-    entry.places.forEach(p => { addNode("place:"+p, p, "place"); addLink(recId, "place:"+p, "tag"); });
-    entry.events.forEach(p => { addNode("event:"+p, p, "event"); addLink(recId, "event:"+p, "tag"); });
+
+    (entry.people || []).forEach(p => {
+      const normP = normalizePersonName(p);
+      if (normP) {
+        addNode("person:" + normP, normP, "person");
+        addLink(recId, "person:" + normP, "tag");
+      }
+    });
+    (entry.places || []).forEach(p => {
+      if (p) {
+        addNode("place:" + p, p, "place");
+        addLink(recId, "place:" + p, "tag");
+      }
+    });
+    (entry.events || []).forEach(ev => {
+      if (ev) {
+        addNode("event:" + ev, ev, "event");
+        addLink(recId, "event:" + ev, "tag");
+      }
+    });
   });
 
+  // 2. 기록 간 공통 태그 공유 링크 연결
   function connectRecords(tagKey) {
     const groups = new Map();
-    entries.forEach(entry => {
-      entry[tagKey].forEach(tag => {
+    entries.forEach(rawEntry => {
+      const entry = normalizeEntry(rawEntry);
+      const tags = tagKey === "people" 
+        ? (entry.people || []).map(normalizePersonName).filter(Boolean)
+        : (entry[tagKey] || []);
+
+      tags.forEach(tag => {
         if (!groups.has(tag)) groups.set(tag, []);
         groups.get(tag).push(entry.id);
       });
@@ -1901,7 +2049,7 @@ function renderGraph(entries) {
     groups.forEach(ids => {
       for (let i = 0; i < ids.length; i++) {
         for (let j = i+1; j < ids.length; j++) {
-          addLink("rec:"+ids[i], "rec:"+ids[j], "shared");
+          addLink("rec:" + ids[i], "rec:" + ids[j], "shared");
         }
       }
     });
@@ -1910,23 +2058,38 @@ function renderGraph(entries) {
   connectRecords("places");
   connectRecords("events");
 
+  // 3. 노드 연결도(Degree) 비례 반지름 안전 계산
+  const degreeMap = new Map();
+  links.forEach(l => {
+    const sId = typeof l.source === 'object' ? l.source.id : l.source;
+    const tId = typeof l.target === 'object' ? l.target.id : l.target;
+    degreeMap.set(sId, (degreeMap.get(sId) || 0) + 1);
+    degreeMap.set(tId, (degreeMap.get(tId) || 0) + 1);
+  });
+
+  nodes.forEach(n => {
+    n.degree = degreeMap.get(n.id) || 1;
+    const baseR = (nodeBaseRadius && nodeBaseRadius[n.type]) ? nodeBaseRadius[n.type] : 8;
+    n.r = Math.min(12, baseR + (n.degree - 1) * 0.5);
+  });
+
   const colorMap = { record:"#7eb8d4", person:"#5daa68", place:"#f59e0b", event:"#a88fd4" };
   const strokeMap = { record:"#5a9ab8", person:"#3d8a50", place:"#d97706", event:"#7a65b0" };
 
   const g = svg.append("g");
-  const zoom = d3.zoom().scaleExtent([0.4, 2.5]).on("zoom", event => g.attr("transform", event.transform));
+  const zoom = d3.zoom().scaleExtent([0.3, 3.0]).on("zoom", event => g.attr("transform", event.transform));
   svg.call(zoom);
 
   graphSimulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links).id(d => d.id).distance(45))
-    .force("charge", d3.forceManyBody().strength(-90))
+    .force("link", d3.forceLink(links).id(d => d.id).distance(d => 32 + Math.min(10, d.source.r || 6)))
+    .force("charge", d3.forceManyBody().strength(-80))
     .force("center", d3.forceCenter(width/2, height/2))
     .force("collision", d3.forceCollide().radius(d => d.r + 5));
 
   const link = g.append("g").selectAll("line").data(links).join("line")
     .attr("stroke", "#cfcab8")
-    .attr("stroke-width", 1.2)
-    .attr("stroke-opacity", 0.7);
+    .attr("stroke-width", d => d.kind === "shared" ? 1.4 : 1.0)
+    .attr("stroke-opacity", 0.6);
 
   const node = g.append("g").selectAll("g").data(nodes).join("g")
     .attr("cursor", "pointer")
@@ -1935,27 +2098,36 @@ function renderGraph(entries) {
       .on("drag", (event, d) => { d.fx=event.x; d.fy=event.y; })
       .on("end", (event, d) => { if (!event.active) graphSimulation.alphaTarget(0); d.fx=null; d.fy=null; }));
 
+  // 아담하고 예쁜 동그라미 원
   node.append("circle")
     .attr("r", d => d.r)
     .attr("fill", d => colorMap[d.type])
     .attr("stroke", d => strokeMap[d.type])
     .attr("stroke-width", 1.5);
 
+  // 또렷하고 깔끔한 단일 텍스트 라벨
   node.append("text")
     .text(d => d.label)
     .attr("text-anchor", "middle")
-    .attr("dy", d => d.r + 9)
-    .attr("font-size", "8px")
-    .attr("fill", "#4e493c")
+    .attr("dy", d => d.r + 10)
+    .attr("font-size", "8.5px")
+    .attr("font-weight", "600")
+    .attr("fill", "#2c3531")
     .attr("pointer-events", "none");
 
+  // 키워드 노드 클릭 시 해당 태그 게시물 주르륵 한눈에 출력 연동
   node.on("click", (_, d) => {
     if (d.type === "record") {
       selectNote(d.entryId);
+      showToast(`📖 '${d.label}' 노트로 이동합니다.`);
     } else {
-      document.getElementById("garden-search-input").value = d.label;
-      renderSidebarList();
-      showToast(`🔍 '${d.label}' 태그를 검색합니다.`);
+      const searchInput = document.getElementById("garden-search-input");
+      if (searchInput) {
+        searchInput.value = d.label;
+        renderSidebarList();
+      }
+      displaySearchResultsView(d.label);
+      showToast(`🔍 '${d.label}' 태그와 관련된 모든 게시물을 보여드립니다!`);
     }
   });
 
