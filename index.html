@@ -3,15 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>예니의 디지털 정원 (Digital Garden Standalone)</title>
-  <meta name="theme-color" content="#588b67">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="예니 PDA">
-  <link rel="manifest" href="manifest.json">
+  <title>예니의 디지털 정원 (Digital Garden)</title>
   <!-- External CSS / JS Libraries (D3.js, Google Fonts) -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
   
   <style>
@@ -39,18 +33,21 @@
       --place: #f59e0b;
       --event: #a88fd4;
 
-      /* Emotion Colors */
+      /* Emotion Colors (에크먼 6가지 기본 감정) */
       --color-joy: #fbbf24;      /* 기쁨 - 황금노랑 */
-      --color-excited: #f472b6;  /* 설렘 - 핑크 */
-      --color-calm: #34d399;     /* 평온 - 에메랄드 */
-      --color-sad: #60a5fa;      /* 슬픔 - 파랑 */
-      --color-tense: #a78bfa;     /* 긴장 - 보라 */
-      --color-angry: #f87171;    /* 화남 - 빨강 */
-      --color-miss: #fb923c;     /* 그리움 - 주황 */
+      --color-sadness: #60a5fa;  /* 슬픔 - 파랑 */
+      --color-anger: #f87171;    /* 분노 - 빨강 */
+      --color-fear: #a78bfa;     /* 두려움 - 보라 */
+      --color-disgust: #34d399;  /* 혐오 - 에메랄드 */
+      --color-surprise: #f472b6; /* 놀람 - 핑크 */
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
+    html {
+      font-size: 17.5px; /* 기본 16px에서 약 10% 확대 (논문 캡쳐 및 인쇄 시 선명한 가독성) */
+    }
+
     body {
       font-family: 'Outfit', 'Noto Sans KR', -apple-system, sans-serif;
       background-color: var(--bg-garden);
@@ -70,11 +67,28 @@
     /* 1. 좌측 카테고리/탐색 사이드바 */
     .sidebar {
       width: 290px;
+      min-width: 180px;
+      max-width: 550px;
       background-color: var(--bg-sidebar);
-      border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
+    }
+
+    /* 좌우 분할 리사이저 (Splitter / Resizer) */
+    .resizer {
+      width: 5px;
+      cursor: col-resize;
+      background-color: var(--border-color);
+      position: relative;
+      flex-shrink: 0;
+      z-index: 30;
+      transition: background-color 0.2s, width 0.2s;
+    }
+    .resizer:hover,
+    .resizer.resizing {
+      background-color: var(--primary);
+      width: 6px;
     }
 
     .sidebar-header {
@@ -299,7 +313,8 @@
     /* 3. 우측 지식 정원 정보 사이드바 */
     .info-sidebar {
       width: 370px;
-      border-left: 1px solid var(--border-color);
+      min-width: 260px;
+      max-width: 650px;
       background-color: var(--bg-garden);
       display: flex;
       flex-direction: column;
@@ -477,12 +492,11 @@
     }
     .meta-chip.emotion-chip { font-weight: 600; }
     .meta-chip.emotion-chip.joy { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-    .meta-chip.emotion-chip.excited { background: #fce7f3; color: #9d174d; border-color: #f472b6; }
-    .meta-chip.emotion-chip.calm { background: #d1fae5; color: #065f46; border-color: #34d399; }
-    .meta-chip.emotion-chip.sad { background: #dbeafe; color: #1e40af; border-color: #60a5fa; }
-    .meta-chip.emotion-chip.tense { background: #ede9fe; color: #5b21b6; border-color: #a78bfa; }
-    .meta-chip.emotion-chip.angry { background: #fee2e2; color: #991b1b; border-color: #f87171; }
-    .meta-chip.emotion-chip.miss { background: #ffedd5; color: #9a3412; border-color: #fb923c; }
+    .meta-chip.emotion-chip.sadness { background: #dbeafe; color: #1e40af; border-color: #60a5fa; }
+    .meta-chip.emotion-chip.anger { background: #fee2e2; color: #991b1b; border-color: #f87171; }
+    .meta-chip.emotion-chip.fear { background: #ede9fe; color: #5b21b6; border-color: #a78bfa; }
+    .meta-chip.emotion-chip.disgust { background: #d1fae5; color: #065f46; border-color: #34d399; }
+    .meta-chip.emotion-chip.surprise { background: #fce7f3; color: #9d174d; border-color: #f472b6; }
 
     /* 노트 뷰어 (Obsidian Style) */
     .note-viewer-header {
@@ -690,7 +704,7 @@
       </div>
       <div class="sidebar-brand">
         <h1 id="garden-brand-title" onclick="window.changeGardenTitle()" style="cursor:pointer;" title="클릭하여 정원 이름 변경">예니의 디지털 정원 <span style="font-size:0.85rem; color:var(--primary); font-weight:normal;">✏️</span></h1>
-        <p style="cursor:pointer;" onclick="window.changeGardenTitle()">Standalone Offline Web App</p>
+        <p style="cursor:pointer;" onclick="window.changeGardenTitle()">Local-First Web Archive</p>
       </div>
     </div>
     
@@ -715,6 +729,14 @@
         </div>
       </div>
 
+      <div class="category-filter-group" id="emotion-filter-group">
+        <div class="category-title">
+          <span>😊 감정 필터</span>
+          <span id="btn-clear-emotion-filter" onclick="filterByEmotion('all')" style="display:none; font-size:0.7rem; color:var(--primary); cursor:pointer;">초기화</span>
+        </div>
+        <div id="sidebar-emotion-filters" style="display:flex; flex-wrap:wrap; gap:5px; padding:4px 6px;"></div>
+      </div>
+
       <div class="tree-folder-title">
         <span>📝 노트 목록</span>
       </div>
@@ -729,6 +751,9 @@
     </div>
   </aside>
 
+  <!-- 좌측 사이드바 리사이저 바 -->
+  <div class="resizer" id="resizer-left" title="좌우로 드래그하여 카테고리/노트 목록 너비 조절"></div>
+
   <!-- 2. 중앙 메인 작업/대시보드 영역 -->
   <main class="main-viewport">
     <div class="garden-topbar">
@@ -736,9 +761,7 @@
         🔍 <input type="text" id="garden-search-input" placeholder="제목, 본문, 태그, 인물 검색...">
       </div>
       <div class="toolbar-actions">
-        <span class="storage-badge" id="garden-storage-badge">🟢 로컬 DB 동기화됨</span>
-        <button class="btn btn-text" style="font-size:0.8rem; padding:6px 12px; background:#e8f0fe; color:#1a73e8; border-color:#aecbfa; font-weight:600;" onclick="openGoogleDriveModal()">☁️ 구글 드라이브 동기화</button>
-        <button class="btn btn-text" id="pwa-install-btn" style="font-size:0.8rem; padding:6px 12px; background:var(--primary-light); color:var(--primary-hover); border-color:var(--primary); font-weight:600;" onclick="installPWAApp()">📲 앱 설치 (PWA)</button>
+        <span class="storage-badge" id="garden-storage-badge">🟢 로컬 DB 저장됨</span>
         <button class="btn btn-brand" style="font-size:0.8rem; padding:6px 14px; font-weight:600;" onclick="openBackupModal()">💾 백업 및 복원 (JSON)</button>
       </div>
     </div>
@@ -749,15 +772,20 @@
     </div>
   </main>
 
+  <!-- 우측 사이드바 리사이저 바 -->
+  <div class="resizer" id="resizer-right" title="좌우로 드래그하여 감정단지/지식 네트워크 너비 조절"></div>
+
   <!-- 3. 우측 지식 정원 정보 사이드바 -->
   <aside class="info-sidebar">
     <div class="info-panel-title">🔮 감정 단지</div>
-    <div class="infographic-card">
-      <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">
-        버블 크기 = 기록 수 &nbsp;·&nbsp; 클릭하면 해당 감정의 기록을 확인합니다.
+    <div class="infographic-card" style="position:relative; padding: 14px;">
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>버블 크기 = 기록 수 · 🔍 마우스 휠/드래그 확대 가능</span>
       </p>
-      <svg id="emotion-bubble-svg" class="emotion-bubble-svg" height="210"></svg>
-      <!-- 감정별 노트 목록 팝업 -->
+      <svg id="emotion-bubble-svg" class="emotion-bubble-svg" height="240" style="width:100%; height:240px; display:block; background:transparent;"></svg>
+      <!-- 감정별 개수 디테일 상세 요약 칩 리스트 -->
+      <div id="emotion-summary-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border-color);"></div>
+      <!-- 감정 노트 팝업 오버레이 -->
       <div class="emotion-notes-popup" id="emotion-notes-popup">
         <div class="popup-header">
           <span id="popup-emotion-label"></span>
@@ -769,14 +797,17 @@
 
     <div class="info-panel-title">🕸️ 로컬 지식 네트워크</div>
     <div class="graph-container-card">
-      <div class="graph-legend">
-        <span class="legend-item"><span class="legend-dot" style="background:var(--record)"></span>노트</span>
-        <span class="legend-item"><span class="legend-dot" style="background:var(--person)"></span>인물</span>
-        <span class="legend-item"><span class="legend-dot" style="background:var(--place)"></span>장소</span>
-        <span class="legend-item"><span class="legend-dot" style="background:var(--event)"></span>일정</span>
+      <div class="graph-legend" style="padding: 10px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.72rem; display:flex; gap:12px; align-items:center; justify-content:space-between;">
+        <div>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--record)"></span>노트</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--person)"></span>인물</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--place)"></span>장소</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--event)"></span>일정</span>
+        </div>
+        <span style="font-size:0.7rem; color:var(--text-muted);">🔍 마우스 휠 확대/드래그</span>
       </div>
-      <div style="width: 100%; height: 260px; min-height: 260px; position: relative;">
-        <svg id="garden-svg" style="width: 100%; height: 260px; display: block;"></svg>
+      <div style="width: 100%; height: 380px; min-height: 380px; position: relative;">
+        <svg id="garden-svg" style="width: 100%; height: 380px; display: block;"></svg>
       </div>
     </div>
   </aside>
@@ -814,16 +845,33 @@
 const STORAGE_KEY = "my-local-app-data-v1";
 const PROFILE_KEY = "my-local-app-profile-v1";
 
-// 폴 에크먼(Paul Ekman, 1992) 7대 기본 감정 이론 기반 표준화 감정 범주
+// 폴 에크먼(Paul Ekman)의 기본 감정 6가지 범주 (기쁨, 슬픔, 분노, 두려움, 혐오, 놀람)
 const EMOTIONS = [
-  { id: "joy", emoji: "😊", label: "기쁨", orbClass: "orb-joy" },
-  { id: "sadness", emoji: "😢", label: "슬픔", orbClass: "orb-sad" },
-  { id: "anger", emoji: "😤", label: "분노", orbClass: "orb-angry" },
-  { id: "fear", emoji: "😱", label: "두려움", orbClass: "orb-tense" },
-  { id: "disgust", emoji: "🤢", label: "혐오", orbClass: "orb-calm" },
-  { id: "surprise", emoji: "😲", label: "놀람", orbClass: "orb-excited" },
-  { id: "contempt", emoji: "😒", label: "경멸", orbClass: "orb-miss" },
+  { id: "joy", emoji: "😊", label: "기쁨", orbClass: "orb-joy", color: "#fbbf24" },
+  { id: "sadness", emoji: "😢", label: "슬픔", orbClass: "orb-sad", color: "#60a5fa" },
+  { id: "anger", emoji: "😤", label: "분노", orbClass: "orb-angry", color: "#f87171" },
+  { id: "fear", emoji: "😱", label: "두려움", orbClass: "orb-tense", color: "#a78bfa" },
+  { id: "disgust", emoji: "🤢", label: "혐오", orbClass: "orb-calm", color: "#34d399" },
+  { id: "surprise", emoji: "😲", label: "놀람", orbClass: "orb-excited", color: "#f472b6" },
 ];
+
+// 기존 저장 데이터의 감정값(joy, excited, calm, sad, tense, angry, miss) 호환성 매핑 테이블
+// 원본 저장 데이터는 덮어쓰지 않고 화면 표시·필터링·통계 시점에 가장 가까운 기본 감정으로 변환합니다.
+const LEGACY_EMOTION_MAP = {
+  joy: "joy",         // joy -> 기쁨
+  excited: "surprise",// excited -> 놀람
+  calm: "joy",        // calm -> 기쁨
+  sad: "sadness",     // sad -> 슬픔
+  tense: "fear",      // tense -> 두려움
+  angry: "anger",     // angry -> 분노
+  miss: "sadness",    // miss -> 슬픔
+  // 신규 6대 기본 감정 ID 자체 매핑
+  sadness: "sadness",
+  anger: "anger",
+  fear: "fear",
+  disgust: "disgust",
+  surprise: "surprise"
+};
 
 const CATEGORIES = ["일기", "메모", "아이디어", "공부"];
 
@@ -835,6 +883,7 @@ let db = null;
 let currentNotes = [];
 let selectedNoteId = null;
 let activeCategoryFilter = "all";
+let activeEmotionFilter = "all";
 let graphSimulation = null;
 
 // 에디터 상태 보관
@@ -849,7 +898,32 @@ function esc(s) {
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substring(2, 6); }
 function todayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function formatDate(iso) { if(!iso) return ''; const [y,m,d] = iso.split('-'); return `${y}.${m}.${d}`; }
-function getEmotion(id) { return EMOTIONS.find(e => e.id === id); }
+
+function mapEmotionId(rawId) {
+  if (!rawId) return null;
+  return LEGACY_EMOTION_MAP[rawId] || null;
+}
+
+function getEmotion(id) {
+  const mappedId = mapEmotionId(id);
+  return EMOTIONS.find(e => e.id === mappedId);
+}
+
+// 원본 데이터의 emotions 배열을 변경하지 않고 호환 변환된 고유 감정 ID 목록을 반환
+function getMappedEmotions(entry) {
+  if (!entry) return [];
+  const rawList = Array.isArray(entry.emotions)
+    ? entry.emotions
+    : (entry.emotion ? [entry.emotion] : []);
+  const mapped = [];
+  rawList.forEach(rawId => {
+    const mId = mapEmotionId(rawId);
+    if (mId && !mapped.includes(mId)) {
+      mapped.push(mId);
+    }
+  });
+  return mapped;
+}
 
 function normalizeEntry(entry) {
   return {
@@ -872,7 +946,7 @@ function showToast(msg) {
   showToast._t = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ── 지능형 메타데이터 자연어 파싱 엔진 (AI Natural Language Metadata Parser) ──
+// ── 키워드·패턴 기반 메타데이터 자동 추출 엔진 (Rule-based Metadata Extractor) ──
 function parseMetadataFromText(text) {
   if (!text || !text.trim()) return null;
 
@@ -917,14 +991,15 @@ function parseMetadataFromText(text) {
     }
   }
 
-  // 2. 인물 태그 정밀 추출 (성씨+이름 정밀 검증, 대명사/어미/동사 100% 차단)
+  // 2. 인물 태그 정밀 추출 (성씨+이름 정밀 검증, 대명사/어미/동사/장소 100% 차단)
   const excludePeople = new Set([
     "오늘", "어제", "내일", "사람", "시간", "생각", "카페", "학교", "회사", "마음", "기분", 
     "이번", "지난", "다음", "노트", "일기", "정원", "점심", "저녁", "아침", "식사", "함께", 
     "진수당", "전북대", "서울대", "연세대", "고려대", "사진", "동영상", "하루", "근처", "치킨",
     "맥주", "치맥", "치킨집", "보냈다", "먹으며", "즐거운", "행복한", "시간을", "3명", "3명이", "명", "명이",
     "논문", "위해서", "활용해서", "만들었다", "프로토타입", "안티그래비티", "PDA", "연구", "프로젝트",
-    "우리", "가족", "저희", "마시며", "먹고", "구경했다", "마무리했다", "돌아와", "횟집", "해수욕장"
+    "우리", "가족", "저희", "마시며", "먹고", "구경했다", "마무리했다", "돌아와", "횟집", "해수욕장",
+    "전주", "경기전", "한옥마을", "길거리", "버스킹", "비빔밥", "을지로", "대학로", "소극장", "용산역", "해운대", "백사장"
   ]);
 
   const verbExcludes = [
@@ -934,7 +1009,7 @@ function parseMetadataFromText(text) {
     "마시며", "마무리했다", "구경했다", "돌아와"
   ];
 
-  const topicCandidates = ["김밥", "라면", "치킨", "피자", "커피", "음료", "영화", "음악", "운동", "공부", "창업", "맛집", "아이디어", "디자인", "연구", "치맥", "논문", "프로토타입", "안티그래비티", "PDA", "불꽃놀이", "여행"];
+  const topicCandidates = ["김밥", "라면", "치킨", "피자", "커피", "음료", "영화", "음악", "운동", "공부", "창업", "맛집", "아이디어", "디자인", "연구", "치맥", "논문", "프로토타입", "안티그래비티", "PDA", "불꽃놀이", "여행", "버스킹", "연극", "프로젝트"];
 
   // 본문에 주제 관련 명사가 있으면 '주제 키워드(keywords)'로 추출
   topicCandidates.forEach(topic => {
@@ -943,17 +1018,17 @@ function parseMetadataFromText(text) {
     }
   });
 
-  // '오효정 교수님', '오효정교수님', '오교수님', '김군도', '박진영', '이예은' 등 직함 정규식 분석
+  // 직함 정규식 분석
   const fullNameWithTitleRegex = /([가-힣]{2,4}\s*(?:교수님|교수|부장님|부장|선생님|선배|후배|팀장님|팀장|님))/g;
   let matchFull;
   while ((matchFull = fullNameWithTitleRegex.exec(text)) !== null) {
     const fullP = matchFull[1].trim();
-    if (!result.people.includes(fullP)) {
+    if (!result.people.includes(fullP) && !excludePeople.has(fullP)) {
       result.people.push(fullP);
     }
   }
 
-  // 동사 어미, 접속어, 수식어 패턴 (위해서, 활용해서, 마시며, 구경했다 등 100% 차단)
+  // 동사 어미, 접속어, 수식어 패턴 차단
   const verbSuffixRegex = /(?:만나서|구상했다|먹었다|갔다|왔다|했다|이고|하며|에서|으로|로써|까지|부터|하고|좋아해|좋아하고|좋아한다|점심으로|저녁으로|먹으며|보냈다|즐거운|해서|위해서|활용해서|만들었다|하였다|되었다|있다|없다|니다|습니다|는다|였다|았다|었다|관해|대해|따라|통해|마시며|마무리했다|구경했다)$/;
 
   const rawTokens = text.split(/[\s.\n]+/);
@@ -968,28 +1043,37 @@ function parseMetadataFromText(text) {
       if (excludePeople.has(rawName) || verbExcludes.includes(rawName) || topicCandidates.includes(rawName) || verbSuffixRegex.test(rawName)) return;
 
       let clean = rawName.replace(/(?:님|교수님|교수|부장|선배|후배|과|와|이랑|하고|이|가|은|는|한테|에게|과함께|와함께)$/g, '').trim();
-      if (clean.length >= 2 && clean.length <= 4 && !excludePeople.has(clean) && !verbExcludes.includes(clean) && !topicCandidates.includes(clean) && !verbSuffixRegex.test(clean)) {
-        // 한국어 성씨 인명 패턴 확인
-        const isKoreanNamePattern = /^[김|이|박|최|정|강|조|윤|장|임|한|오|서|신|권|황|안|송|류|홍|전|고|문|양|손|배|백|허|유|남|심|노|하|곽|성|차|주|우|구|나|민|유|진|지|엄|채|원|천|방|현|함|변|염|추|도|선|설|마|길|연|표|명|기|반|왕|금|인|맹|제|모|예][가-힣]{1,3}$/.test(clean);
-        const isExplicitKnownPerson = ["예니", "이옌", "이예은", "예은", "오교수님", "김군도", "박진영"].includes(clean);
-        
-        if (isKoreanNamePattern || isExplicitKnownPerson) {
-          const isSubsumed = result.people.some(p => p.includes(clean) || clean.includes(p));
-          if (!isSubsumed) {
-            result.people.push(clean);
+      if ((clean.length >= 2 && clean.length <= 4) || clean === "나") {
+        if (!excludePeople.has(clean) && !verbExcludes.includes(clean) && !topicCandidates.includes(clean) && !verbSuffixRegex.test(clean)) {
+          const isKoreanNamePattern = /^[김|이|박|최|정|강|조|윤|장|임|한|오|서|신|권|황|안|송|류|홍|전|고|문|양|손|배|백|허|유|남|심|노|하|곽|성|차|주|우|구|나|민|유|진|지|엄|채|원|천|방|현|함|변|염|추|도|선|설|마|길|연|표|명|기|반|왕|금|인|맹|제|모|예][가-힣]{1,3}$/.test(clean);
+          const isExplicitKnownPerson = ["예니", "이옌", "이예은", "예은", "나", "민지", "최민지", "오교수님", "김군도", "박진영", "정은", "현우", "서진"].includes(clean);
+          
+          if ((isKoreanNamePattern || isExplicitKnownPerson) && !["전주", "을지로", "대학로", "용산역", "해운대"].includes(clean)) {
+            const isSubsumed = result.people.some(p => p.includes(clean) || clean.includes(p));
+            if (!isSubsumed) {
+              result.people.push(clean);
+            }
           }
         }
       }
     });
   });
 
-  // 인물 동의어 / 별칭 (Alias) 대표명으로 100% 통합
+  // 본문 문장에 '나', '내가', '나의', '나와' 1글자 대명사가 포함되면 인물에 '나' 자동 주입
+  if (/(?:^|\s|가족|친구|선생님)(?:나|내가|나의|나와|나랑)(?:\s|$|,|\.)/.test(text) || text.includes(" 내가 ") || text.includes(" 나의 ")) {
+    if (!result.people.includes("나") && !result.people.includes("이예은 (나)")) {
+      result.people.push("나");
+    }
+  }
+
+  // 인물 동의어 / 별칭 (Alias) 대표명 통합
   const PERSON_ALIAS_MAP = {
     "예니": "이예은 (나)",
     "이옌": "이예은 (나)",
     "이예은": "이예은 (나)",
     "예은": "이예은 (나)",
-    "이예": "이예은 (나)"
+    "이예": "이예은 (나)",
+    "나": "이예은 (나)"
   };
 
   result.people = result.people.map(p => {
@@ -1001,8 +1085,8 @@ function parseMetadataFromText(text) {
     return self.indexOf(person) === idx;
   });
 
-  // 3. 장소 태그 추출 (독립 단어 경계 및 '횟집'에서 '집' 분리되는 버그 완전 차단)
-  const knownPlaces = ["서울", "부산", "제주", "전북대", "진수당", "강남", "홍대", "성수", "판교", "연구실", "실험실", "강의실", "도서관", "회사", "사무실", "카페", "식당", "영화관", "헬스장", "스터디룸", "공원", "학교", "병원", "해수욕장", "호텔"];
+  // 3. 장소 태그 추출
+  const knownPlaces = ["서울", "부산", "제주", "전주", "한옥마을", "경기전", "전북대", "진수당", "강남", "홍대", "성수", "판교", "연구실", "실험실", "강의실", "도서관", "회사", "사무실", "카페", "식당", "영화관", "헬스장", "스터디룸", "공원", "학교", "병원", "해수욕장", "호텔", "을지로", "대학로", "소극장", "용산역", "로비", "해운대", "백사장"];
   
   knownPlaces.forEach(pl => {
     if (text.includes(pl) && !result.places.includes(pl)) {
@@ -1010,14 +1094,14 @@ function parseMetadataFromText(text) {
     }
   });
 
-  // '집' 단어는 '횟집', '맛집' 등에 잘려 들어가지 않도록 혜안 독립 단어(집에, 집에서, 우리 집 등)만 추출
+  // '집' 단어 독립 추출
   if (/(?:^|\s|가족|우리)(?:집에|집에서|집으로|집|내집)(?:\s|$|,|\.)/.test(text) || text.includes(" 우리집")) {
     if (!result.places.includes("집") && !text.includes("횟집") && !text.includes("맛집")) {
       result.places.push("집");
     }
   }
 
-  const placeSuffixRegex = /([가-힣a-zA-Z0-9]{2,8}(?:역|카페|공원|사무실|학교|대|당|도서관|식당|병원|센터|관|지점|빌딩|룸|마을|점|해수욕장|호텔))/g;
+  const placeSuffixRegex = /([가-힣a-zA-Z0-9]{2,8}(?:역|카페|공원|사무실|학교|대|당|도서관|식당|병원|센터|관|지점|빌딩|룸|마을|점|해수욕장|호텔|소극장|로비|백사장))/g;
   let matchPl;
   while ((matchPl = placeSuffixRegex.exec(text)) !== null) {
     const place = matchPl[1];
@@ -1027,22 +1111,21 @@ function parseMetadataFromText(text) {
   }
 
   // 4. 일정/이벤트 태그 추출
-  const knownEvents = ["점심", "저녁", "식사", "세미나", "워크숍", "미팅", "회의", "발표", "데이트", "운동", "면접", "스터디", "여행", "콘서트", "축제", "시험", "과제", "생일", "파티", "프로젝트", "불꽃놀이"];
+  const knownEvents = ["점심", "저녁", "식사", "세미나", "워크숍", "미팅", "회의", "발표", "데이트", "운동", "면접", "스터디", "여행", "콘서트", "축제", "시험", "과제", "생일", "파티", "프로젝트", "불꽃놀이", "버스킹", "공연", "연극", "연구", "대화"];
   knownEvents.forEach(ev => {
     if (text.includes(ev) && !result.events.includes(ev)) {
       result.events.push(ev);
     }
   });
 
-  // 5. 감정 키워드 매핑
+  // 5. 에크먼 6가지 기본 감정 키워드 사전 (일반적인 감정 표현 중심)
   const emotionKeywords = {
-    joy: ["기쁘", "행복", "좋았", "즐겁", "최고", "성공", "만족", "웃음", "신나", "감사", "뿌듯", "흐뭇", "기분좋", "신남", "맛있", "점심", "불꽃놀이"],
-    excited: ["설레", "기대", "두근", "설렘", "새로운", "시작", "원하던", "꿈꾸", "기대된", "가슴이", "첫만남", "여행"],
-    calm: ["평온", "조용", "편안", "휴식", "아늑", "여유", "힐링", "차분", "상쾌", "안정", "마무리"],
-    sad: ["슬프", "눈물", "우울", "아쉽", "서운", "울었", "상처", "속상", "외롭", "쓸쓸", "자책"],
-    tense: ["긴장", "불안", "걱정", "떨리", "부담", "초조", "스트레스", "무섭", "두려", "막막"],
-    angry: ["화나", "짜증", "분노", "답답", "열받", "황당", "억울", "빡침", "화가"],
-    miss: ["그립", "보고싶", "추억", "생각나", "오랜만", "그리움", "예전", "옛날", "아련"]
+    joy: ["기쁘", "기쁨", "행복", "즐겁", "즐거움", "신나", "신남", "만족", "뿌듯", "흐뭇", "웃음", "기분좋", "감사", "고맙", "반갑", "상쾌", "평온", "편안", "후련", "안도"],
+    sadness: ["슬프", "슬픔", "눈물", "우울", "속상", "서운", "아쉽", "외롭", "쓸쓸", "그립", "그리움", "보고싶", "허전", "비참", "울었", "상처", "안타깝", "서글프"],
+    anger: ["화나", "화남", "분노", "짜증", "열받", "답답", "억울", "분하", "성나", "격분", "불쾌", "약오르", "빡치", "화가"],
+    fear: ["두렵", "두려움", "무섭", "무서움", "불안", "걱정", "긴장", "떨리", "초조", "겁나", "공포", "막막", "조마조마", "두근"],
+    disgust: ["혐오", "불쾌", "역겹", "싫증", "거부감", "질리", "징그럽", "지긋지긋", "구역질", "진절머리", "꼴보"],
+    surprise: ["놀라", "놀람", "깜짝", "충격", "뜻밖", "예상치", "어안이", "경이", "신기", "감탄", "설레", "설렘", "황당"]
   };
 
   Object.keys(emotionKeywords).forEach(emoId => {
@@ -1052,7 +1135,7 @@ function parseMetadataFromText(text) {
     }
   });
 
-  // 6. 명사 중심 스마트 제목(Title) 품격 요약 알고리즘 고도화
+  // 6. 명사 중심 제목(Title) 요약 규칙
   let cleanContent = text.replace(/(\d{2,4}년\s*)?(\d{1,2}월\s*)?(\d{1,2}일,?\s*)?/g, '').trim();
 
   const titleParts = [];
@@ -1067,7 +1150,7 @@ function parseMetadataFromText(text) {
     titleParts.push("일기");
   }
 
-  // 진짜 인명이 있을 때만 괄호 추가 (이상한 어미/동사 괄호 원천 차단)
+  // 인명이 있을 때만 괄호 추가
   if (result.people.length > 0) {
     const validPeople = result.people.filter(p => !["우리", "마시며", "가족"].includes(p));
     if (validPeople.length > 0) {
@@ -1205,7 +1288,7 @@ async function saveNote(note) {
   // 3. localStorage 5MB 쿼터용 경량화 동기화
   saveToLocalStorage(currentNotes);
 
-  // 4. PWA 앱 <-> 웹 브라우저 탭 0.1초 실시간 양방향 동기화 신호 방출
+  // 4. 브라우저 탭 간 실시간 동기화 신호 방출
   broadcastDataChange();
 
   return norm;
@@ -1224,7 +1307,7 @@ async function deleteNote(id) {
   }
   currentNotes = entries;
 
-  // PWA 앱 <-> 웹 브라우저 탭 실시간 동기화 신호 방출
+  // 브라우저 탭 간 실시간 동기화 신호 방출
   broadcastDataChange();
 }
 
@@ -1239,7 +1322,10 @@ function filterCategory(cat, el) {
   // 카테고리 변경 시 필터링된 첫 번째 노트를 메인 뷰어에 즉시 자동 로드
   let filtered = currentNotes;
   if (cat !== "all") {
-    filtered = currentNotes.filter(n => n.category === cat);
+    filtered = filtered.filter(n => n.category === cat);
+  }
+  if (activeEmotionFilter !== "all") {
+    filtered = filtered.filter(n => getMappedEmotions(n).includes(activeEmotionFilter));
   }
   if (filtered.length > 0) {
     selectNote(filtered[0].id);
@@ -1248,11 +1334,72 @@ function filterCategory(cat, el) {
     if (container) {
       container.innerHTML = `<div class="empty-state">
         <div class="icon">📂</div>
-        <h3>'${cat}' 카테고리에 작성된 노트가 없습니다.</h3>
-        <p>우측 하단의 [✏️ 새 노트 작성] 버튼을 눌러 첫 기록을 써보세요!</p>
+        <h3>선택한 조건에 작성된 노트가 없습니다.</h3>
+        <p>좌측 하단의 [✏️ 새 노트 작성] 버튼을 눌러 첫 기록을 써보세요!</p>
       </div>`;
     }
   }
+}
+
+function filterByEmotion(emotionId) {
+  if (activeEmotionFilter === emotionId && emotionId !== "all") {
+    activeEmotionFilter = "all";
+  } else {
+    activeEmotionFilter = emotionId;
+  }
+
+  const clearBtn = document.getElementById("btn-clear-emotion-filter");
+  if (clearBtn) {
+    clearBtn.style.display = activeEmotionFilter === "all" ? "none" : "inline";
+  }
+
+  renderSidebarEmotionFilters();
+  renderSidebarList();
+
+  let filtered = currentNotes;
+  if (activeCategoryFilter !== "all") {
+    filtered = filtered.filter(n => n.category === activeCategoryFilter);
+  }
+  if (activeEmotionFilter !== "all") {
+    filtered = filtered.filter(n => getMappedEmotions(n).includes(activeEmotionFilter));
+  }
+  if (filtered.length > 0) {
+    selectNote(filtered[0].id);
+  } else {
+    const container = document.getElementById("content-container");
+    const emo = getEmotion(activeEmotionFilter);
+    if (container) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="icon">${emo ? emo.emoji : '😊'}</div>
+        <h3>'${emo ? emo.label : activeEmotionFilter}' 감정이 기록된 노트가 없습니다.</h3>
+        <p>다른 감정을 선택하거나 초기화 버튼을 눌러 전체 노트를 확인해 보세요.</p>
+      </div>`;
+    }
+  }
+}
+
+function renderSidebarEmotionFilters() {
+  const wrap = document.getElementById("sidebar-emotion-filters");
+  if (!wrap) return;
+
+  const counts = {};
+  EMOTIONS.forEach(e => { counts[e.id] = 0; });
+  currentNotes.forEach(n => {
+    getMappedEmotions(n).forEach(eid => {
+      if (counts[eid] !== undefined) counts[eid]++;
+    });
+  });
+
+  wrap.innerHTML = EMOTIONS.map(e => {
+    const isActive = activeEmotionFilter === e.id;
+    const cnt = counts[e.id] || 0;
+    const style = isActive
+      ? `background:${e.color}; color:#111827; border-color:${e.color}; font-weight:700;`
+      : `background:white; color:var(--text-main); border-color:var(--border-color);`;
+    return `<button type="button" class="sidebar-emotion-filter-btn ${isActive ? 'active' : ''}" data-emotion="${e.id}" onclick="filterByEmotion('${e.id}')" style="${style} border-width:1.5px; border-style:solid; border-radius:14px; padding:4px 9px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-family:inherit; transition:all 0.15s;">
+      <span>${e.emoji}</span><span>${e.label}</span><span style="opacity:0.75; font-size:0.7rem;">${cnt}</span>
+    </button>`;
+  }).join("");
 }
 
 function updateCategoryCounts() {
@@ -1272,16 +1419,21 @@ function renderSidebarList() {
   if(!container) return;
 
   updateCategoryCounts();
+  renderSidebarEmotionFilters();
 
   let filtered = currentNotes;
   if (activeCategoryFilter !== "all") {
-    filtered = currentNotes.filter(n => n.category === activeCategoryFilter);
+    filtered = filtered.filter(n => n.category === activeCategoryFilter);
+  }
+  if (activeEmotionFilter !== "all") {
+    filtered = filtered.filter(n => getMappedEmotions(n).includes(activeEmotionFilter));
   }
 
   const query = document.getElementById("garden-search-input")?.value.trim().toLowerCase();
   if (query) {
     filtered = filtered.filter(n => {
-      const emoLabels = n.emotions.map(eid => getEmotion(eid)?.label || "").join(" ");
+      const mappedEmotions = getMappedEmotions(n);
+      const emoLabels = mappedEmotions.map(eid => getEmotion(eid)?.label || "").join(" ");
       const searchHay = [n.title, n.text, n.category, emoLabels, ...n.people, ...n.places, ...n.events].join(" ").toLowerCase();
       return searchHay.includes(query);
     });
@@ -1294,7 +1446,8 @@ function renderSidebarList() {
 
   container.innerHTML = filtered.map(note => {
     const activeClass = note.id === selectedNoteId ? 'active' : '';
-    const emotionsStr = note.emotions.map(eid => getEmotion(eid)?.emoji || "").join("");
+    const mappedEmotions = getMappedEmotions(note);
+    const emotionsStr = mappedEmotions.map(eid => getEmotion(eid)?.emoji || "").join("");
     return `
       <div class="tree-item ${activeClass}" onclick="selectNote('${note.id}')" title="${esc(note.title)}">
         <span class="tree-item-title">${esc(note.title)}</span>
@@ -1319,7 +1472,8 @@ function renderNoteViewer(note) {
   const container = document.getElementById("content-container");
   if (!container) return;
 
-  const emotionChips = note.emotions.map(eid => {
+  const mappedEmotions = getMappedEmotions(note);
+  const emotionChips = mappedEmotions.map(eid => {
     const emo = getEmotion(eid);
     return emo ? `<span class="meta-chip emotion-chip ${emo.id}">${emo.emoji} ${emo.label}</span>` : "";
   }).join("");
@@ -1369,7 +1523,7 @@ function renderNoteViewer(note) {
   `;
 }
 
-// ── 검색 결과 모음 아카이브 뷰어 (인물, 장소, 일정 클릭 시 관련 게시글 주르륵 렌더링) ──
+// ── 검색 결과 모음 아카이브 뷰어 (인물, 장소, 일정 클릭 시 관련 게시글 렌더링) ──
 function displaySearchResultsView(query) {
   const container = document.getElementById("content-container");
   if (!container) return;
@@ -1379,7 +1533,8 @@ function displaySearchResultsView(query) {
 
   const filtered = currentNotes.filter(n => {
     const normPeople = (n.people || []).map(normalizePersonName).join(" ");
-    const emoLabels = (n.emotions || []).map(eid => getEmotion(eid)?.label || "").join(" ");
+    const mappedEmotions = getMappedEmotions(n);
+    const emoLabels = mappedEmotions.map(eid => getEmotion(eid)?.label || "").join(" ");
     const searchHay = [n.title, n.text, n.category, normPeople, emoLabels, ...(n.people||[]), ...(n.places||[]), ...(n.events||[])].join(" ").toLowerCase();
     return searchHay.includes(q);
   });
@@ -1395,7 +1550,8 @@ function displaySearchResultsView(query) {
   }
 
   const cardsHtml = filtered.map(note => {
-    const emoChips = (note.emotions || []).map(eid => {
+    const mappedEmotions = getMappedEmotions(note);
+    const emoChips = mappedEmotions.map(eid => {
       const emo = getEmotion(eid);
       return emo ? `<span class="meta-chip emotion-chip ${emo.id}">${emo.emoji} ${emo.label}</span>` : "";
     }).join("");
@@ -1454,7 +1610,8 @@ function startEditNote(id) {
 
   editorPhotos = [...(note.photos || [])];
   editorVideo = note.video || null;
-  editorSelectedEmotions = new Set(note.emotions || []);
+  const mappedEmotions = getMappedEmotions(note);
+  editorSelectedEmotions = new Set(mappedEmotions);
 
   const container = document.getElementById("content-container");
   if (!container) return;
@@ -1467,7 +1624,7 @@ function startEditNote(id) {
     note.text || "", 
     editorPhotos, 
     editorVideo, 
-    note.emotions || []
+    mappedEmotions
   );
 
   initEditorTagInputs(note.people, note.places, note.events);
@@ -1487,7 +1644,7 @@ function getEditorFormHtml(label, title, date, category, text, photos, video, ac
   return `
     <div class="note-viewer-header" style="display:flex; justify-content:space-between; align-items:center;">
       <h2 class="note-viewer-title" style="margin-bottom:0;">${label}</h2>
-      <button class="btn btn-ai" onclick="autoParseEditorMetadata()">✨ AI 스마트 파싱</button>
+      <button class="btn btn-ai" id="btn-auto-extract" onclick="autoParseEditorMetadata()">🔍 자동 추출</button>
     </div>
     <div class="editor-section">
       <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:12px;">
@@ -1508,9 +1665,9 @@ function getEditorFormHtml(label, title, date, category, text, photos, video, ac
       <div class="editor-field">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <label style="margin-bottom:0;">내용</label>
-          <span style="font-size:0.75rem; color:var(--ai-purple); font-weight:600; cursor:pointer;" onclick="autoParseEditorMetadata()">✨ 자연어 분석으로 태그·감정 자동 추출</span>
+          <span style="font-size:0.75rem; color:var(--ai-purple); font-weight:600; cursor:pointer;" onclick="autoParseEditorMetadata()">🔍 키워드·패턴 기반 메타데이터 자동 추출</span>
         </div>
-        <textarea id="editor-text" placeholder="생각과 일기, 아이디어를 자유롭게 기록해 보세요. (예: 2026년 7월 29일 민수와 함께 서울역 카페에서 신제품 회의를 했는데 너무 설레고 기대됐다.)">${esc(text)}</textarea>
+        <textarea id="editor-text" placeholder="생각과 일기, 아이디어를 자유롭게 기록해 보세요. (예: 2026년 7월 29일 민수와 함께 서울역 카페에서 신제품 회의를 했는데 너무 기쁘고 즐거웠다.)">${esc(text)}</textarea>
       </div>
 
       <!-- 미디어 첨부 -->
@@ -1552,23 +1709,23 @@ function getEditorFormHtml(label, title, date, category, text, photos, video, ac
       </div>
 
       <div class="editor-field">
-        <label>감정 상태</label>
+        <label>감정 상태 (선택 사항)</label>
         <div class="emotions-picker">${emotionOptions}</div>
       </div>
 
       <div style="display:flex; gap:12px; margin-top:10px;">
-        <button class="btn btn-brand" onclick="saveEditorData()">💾 저장하기</button>
+        <button class="btn btn-brand" id="btn-save-note" onclick="saveEditorData()">💾 저장하기</button>
         <button class="btn btn-text" onclick="cancelEditor()">취소</button>
       </div>
     </div>
   `;
 }
 
-// ── AI 스마트 파싱 핸들러 ──
+// ── 키워드·패턴 기반 자동 추출 핸들러 ──
 function autoParseEditorMetadata() {
   const text = document.getElementById("editor-text").value;
   if (!text || !text.trim()) {
-    showToast("⚠️ 파싱할 본문 내용을 먼저 입력해 주세요.");
+    showToast("⚠️ 추출할 본문 내용을 먼저 입력해 주세요.");
     return;
   }
 
@@ -1628,9 +1785,9 @@ function autoParseEditorMetadata() {
   });
 
   if (addedCount > 0) {
-    showToast(`✨ 자연어 파싱 완료! 메타데이터 및 태그가 자동 추출되었습니다.`);
+    showToast(`🔍 키워드·패턴 기반 메타데이터 및 태그가 자동 추출되었습니다.`);
   } else {
-    showToast(`✨ 이미 메타데이터가 파싱되어 있습니다.`);
+    showToast(`🔍 이미 메타데이터가 추출되어 있습니다.`);
   }
 }
 
@@ -1760,6 +1917,7 @@ async function saveEditorData() {
   const isEdit = !!selectedNoteId;
   const oldNote = isEdit ? currentNotes.find(x => x.id === selectedNoteId) : null;
 
+  // 감정을 선택하지 않은 경우에도 빈 배열([])로 정상 저장 가능
   const note = {
     id: isEdit ? selectedNoteId : generateId(),
     title: titleVal || "(제목 없음)",
@@ -1813,7 +1971,7 @@ async function handleDeleteNote(id) {
   }
 }
 
-// ── D3 감정 단지 버블 차트 렌더링 ──
+// ── D3 감정 단지 버블 차트 렌더링 (에크먼 6가지 기본 감정 및 기존 데이터 호환) ──
 function renderJarInfographic(notes) {
   const svgEl = document.getElementById("emotion-bubble-svg");
   if (!svgEl) return;
@@ -1822,10 +1980,25 @@ function renderJarInfographic(notes) {
   EMOTIONS.forEach(e => emotionMap.set(e.id, []));
 
   notes.forEach(note => {
-    note.emotions.forEach(eid => {
+    getMappedEmotions(note).forEach(eid => {
       if (emotionMap.has(eid)) emotionMap.get(eid).push(note);
     });
   });
+
+  // 하단 상세 감정별 개수 요약 칩 리스트 렌더링 (6가지 기본 감정 모두 표시)
+  const summaryContainer = document.getElementById("emotion-summary-list");
+  if (summaryContainer) {
+    summaryContainer.innerHTML = EMOTIONS.map(e => {
+      const list = emotionMap.get(e.id) || [];
+      const count = list.length;
+      const chipStyle = count > 0 
+        ? `background:white; color:var(--text-main); font-weight:700; border:1.5px solid ${e.color || '#ccc'}; box-shadow:0 1px 3px rgba(0,0,0,0.06);`
+        : `background:#f3f4f6; color:#9ca3af; border:1px solid #e5e7eb; opacity:0.6;`;
+      return `<div class="emotion-summary-chip" data-emotion-chip="${e.id}" onclick='openEmotionPopupByEmotionId("${e.id}")' style="${chipStyle} padding:4px 9px; border-radius:14px; font-size:0.75rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all 0.15s;" title="클릭시 ${e.label} 기록 확인">
+        <span>${e.emoji}</span> <span>${e.label}</span> <span style="font-size:0.7rem; background:${count > 0 ? e.color : '#e5e7eb'}; color:${count > 0 ? '#111' : '#6b7280'}; padding:1px 6px; border-radius:10px; margin-left:2px; font-weight:800;">${count}개</span>
+      </div>`;
+    }).join("");
+  }
 
   const emotionNodes = EMOTIONS
     .map(e => ({ ...e, noteList: emotionMap.get(e.id) || [], count: (emotionMap.get(e.id) || []).length }))
@@ -1835,7 +2008,7 @@ function renderJarInfographic(notes) {
   svg.selectAll("*").remove();
 
   const W = svgEl.clientWidth || 330;
-  const H = 210;
+  const H = 240;
   svg.attr("viewBox", `0 0 ${W} ${H}`);
 
   if (emotionNodes.length === 0) {
@@ -1850,14 +2023,14 @@ function renderJarInfographic(notes) {
 
   const maxCount = Math.max(...emotionNodes.map(e => e.count));
   const numEmotions = emotionNodes.length;
-  const maxR = Math.min(38, Math.floor(W / (numEmotions * 1.8)));
-  const minR = 14;
-  const rScale = d3.scaleSqrt().domain([0, maxCount]).range([0, maxR]);
-  emotionNodes.forEach(e => { e.r = Math.max(minR, rScale(e.count)); });
+  const maxR = Math.min(44, Math.floor(W / (numEmotions * 1.6)));
+  const minR = 18;
+  const rScale = d3.scaleSqrt().domain([0, maxCount]).range([minR, maxR]);
+  emotionNodes.forEach(e => { e.r = rScale(e.count); });
 
   const simulation = d3.forceSimulation(emotionNodes)
     .force("center", d3.forceCenter(W / 2, H / 2))
-    .force("charge", d3.forceManyBody().strength(3))
+    .force("charge", d3.forceManyBody().strength(5))
     .force("collision", d3.forceCollide().radius(d => d.r + 4).strength(1.0))
     .force("x", d3.forceX(W / 2).strength(0.08))
     .force("y", d3.forceY(H / 2).strength(0.08))
@@ -1870,23 +2043,27 @@ function renderJarInfographic(notes) {
     e.y = Math.max(e.r + 4, Math.min(H - e.r - 4, e.y));
   });
 
-  // 폴 에크먼(Paul Ekman, 1992) 7대 기본 감정 범주 시각화 색상
+  // 에크먼 6가지 기본 감정 색상 매핑
   const colorMap = {
     joy: "#fbbf24",       // 기쁨 (노랑)
     sadness: "#60a5fa",   // 슬픔 (파랑)
     anger: "#f87171",     // 분노 (빨강)
     fear: "#a78bfa",      // 두려움 (보라)
     disgust: "#34d399",   // 혐오 (초록)
-    surprise: "#f472b6",  // 놀람 (분홍)
-    contempt: "#fb923c"   // 경멸 (주황)
+    surprise: "#f472b6"   // 놀람 (분홍)
   };
 
   const g = svg.append("g");
+
+  // 마우스 휠 줌 & 드래그 패닝 탑재
+  const zoom = d3.zoom().scaleExtent([0.5, 4.0]).on("zoom", event => g.attr("transform", event.transform));
+  svg.call(zoom);
 
   const node = g.selectAll(".emotion-node")
     .data(emotionNodes)
     .join("g")
     .attr("class", "emotion-node")
+    .attr("data-emotion-id", d => d.id)
     .attr("transform", d => `translate(${d.x},${d.y})`)
     .attr("cursor", "pointer")
     .on("click", (_, d) => openEmotionPopup(d));
@@ -1895,37 +2072,45 @@ function renderJarInfographic(notes) {
     .attr("class", "bubble-circle")
     .attr("r", d => d.r)
     .attr("fill", d => colorMap[d.id] || "#ccc")
-    .attr("fill-opacity", 0.85)
+    .attr("fill-opacity", 0.88)
     .attr("stroke", d => colorMap[d.id] || "#ccc")
     .attr("stroke-width", 2)
-    .attr("stroke-opacity", 0.6);
+    .attr("stroke-opacity", 0.7);
 
+  // 이모지 출력
   node.append("text")
     .attr("text-anchor", "middle")
-    .attr("dy", d => d.r >= 24 ? "-7px" : "-1px")
-    .attr("font-size", d => d.r >= 24 ? "14px" : "10px")
+    .attr("dy", d => d.r >= 28 ? "-11px" : "-4px")
+    .attr("font-size", d => d.r >= 28 ? "16.5px" : "13px")
     .attr("pointer-events", "none")
     .text(d => d.emoji);
 
-  node.filter(d => d.r >= 16)
-    .append("text")
+  // 감정 명칭
+  node.append("text")
     .attr("text-anchor", "middle")
-    .attr("dy", d => d.r >= 24 ? "7px" : "5px")
-    .attr("font-size", d => d.r >= 24 ? "8.5px" : "7px")
-    .attr("font-weight", "700")
-    .attr("fill", "white")
+    .attr("dy", d => d.r >= 28 ? "6px" : "7px")
+    .attr("font-size", d => d.r >= 28 ? "11px" : "9.5px")
+    .attr("font-weight", "800")
+    .attr("fill", "#111827")
     .attr("pointer-events", "none")
     .text(d => d.label);
 
-  node.filter(d => d.r >= 22)
-    .append("text")
+  // 개수 명시
+  node.append("text")
     .attr("text-anchor", "middle")
-    .attr("dy", d => d.r >= 24 ? "17px" : "13px")
-    .attr("font-size", "8px")
-    .attr("font-weight", "600")
-    .attr("fill", "rgba(255,255,255,0.85)")
+    .attr("dy", d => d.r >= 28 ? "19px" : "18px")
+    .attr("font-size", d => d.r >= 28 ? "10.5px" : "9px")
+    .attr("font-weight", "800")
+    .attr("fill", "#111827")
     .attr("pointer-events", "none")
     .text(d => `${d.count}개`);
+}
+
+function openEmotionPopupByEmotionId(emotionId) {
+  const emoNode = EMOTIONS.find(e => e.id === emotionId);
+  if (!emoNode) return;
+  const list = currentNotes.filter(n => getMappedEmotions(n).includes(emotionId));
+  openEmotionPopup({ ...emoNode, noteList: list, count: list.length });
 }
 
 function openEmotionPopup(emotionNode) {
@@ -1936,20 +2121,24 @@ function openEmotionPopup(emotionNode) {
 
   label.innerHTML = `${emotionNode.emoji} ${emotionNode.label} · ${emotionNode.count}개의 기록`;
 
-  list.innerHTML = emotionNode.noteList.map(note => `
-    <div class="popup-note-item" data-id="${note.id}">
-      <strong>${esc(note.title)}</strong>
-      <div style="font-size:0.76rem; color:var(--text-muted); margin-top:2px;">${formatDate(note.date)} · 📂 ${esc(note.category)}</div>
-    </div>
-  `).join("");
+  if (emotionNode.count === 0) {
+    list.innerHTML = `<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:0.82rem;">이 감정으로 분류된 노트가 아직 없습니다.</div>`;
+  } else {
+    list.innerHTML = emotionNode.noteList.map(note => `
+      <div class="popup-note-item" data-id="${note.id}">
+        <strong>${esc(note.title)}</strong>
+        <div style="font-size:0.76rem; color:var(--text-muted); margin-top:2px;">${formatDate(note.date)} · 📂 ${esc(note.category)}</div>
+      </div>
+    `).join("");
 
-  list.querySelectorAll(".popup-note-item").forEach(el => {
-    el.addEventListener("click", () => {
-      closeEmotionPopup();
-      selectNote(el.dataset.id);
-      showToast(`📖 '${el.querySelector("strong").textContent}' 노트로 이동합니다.`);
+    list.querySelectorAll(".popup-note-item").forEach(el => {
+      el.addEventListener("click", () => {
+        closeEmotionPopup();
+        selectNote(el.dataset.id);
+        showToast(`📖 '${el.querySelector("strong").textContent}' 노트로 이동합니다.`);
+      });
     });
-  });
+  }
 
   popup.classList.add("open");
 }
@@ -1958,10 +2147,11 @@ function closeEmotionPopup() {
   const popup = document.getElementById("emotion-notes-popup");
   if (popup) popup.classList.remove("open");
 }
-// 인물명 동의어/별칭 통합 공통 함수 (이예은, 예니, 이옌, 예은, 이예 -> 이예은 (나))
+
+// 인물명 동의어/별칭 통합 공통 함수
 function normalizePersonName(name) {
   if (!name) return '';
-  const clean = String(name).replace(/(?:를|을|에서|으로|와|과|랑|하고)$/g, '').trim();
+  const clean = String(name).replace(/(?:를|을|에서|으로|와|과|랑|하고)$/g, '').replace(/\s*\(나\)$/g, '').trim();
   const map = {
     "예니": "이예은 (나)",
     "이옌": "이예은 (나)",
@@ -1979,8 +2169,8 @@ function renderGraph(entries) {
 
   if (!entries || !entries.length) return;
 
-  const width = document.getElementById("garden-svg")?.clientWidth || 320;
-  const height = 260;
+  const width = document.getElementById("garden-svg")?.clientWidth || 340;
+  const height = 380;
   svg.attr("width", "100%").attr("height", height).attr("viewBox", `0 0 ${width} ${height}`);
 
   const nodes = [];
@@ -2007,7 +2197,7 @@ function renderGraph(entries) {
     links.push({ source:sourceId, target:targetId, kind });
   }
 
-  // 1. 노드 및 링크 추가 (이예은 (나) 통합 적용)
+  // 1. 노드 및 링크 추가
   entries.forEach(rawEntry => {
     const entry = normalizeEntry(rawEntry);
     const recId = "rec:" + entry.id;
@@ -2062,7 +2252,7 @@ function renderGraph(entries) {
   connectRecords("places");
   connectRecords("events");
 
-  // 3. 노드 연결도(Degree) 비례 반지름 안전 계산
+  // 3. 노드 연결도(Degree) 비례 반지름 계산
   const degreeMap = new Map();
   links.forEach(l => {
     const sId = typeof l.source === 'object' ? l.source.id : l.source;
@@ -2081,7 +2271,7 @@ function renderGraph(entries) {
   const strokeMap = { record:"#5a9ab8", person:"#3d8a50", place:"#d97706", event:"#7a65b0" };
 
   const g = svg.append("g");
-  const zoom = d3.zoom().scaleExtent([0.3, 3.0]).on("zoom", event => g.attr("transform", event.transform));
+  const zoom = d3.zoom().scaleExtent([0.15, 4.0]).on("zoom", event => g.attr("transform", event.transform));
   svg.call(zoom);
 
   graphSimulation = d3.forceSimulation(nodes)
@@ -2102,24 +2292,21 @@ function renderGraph(entries) {
       .on("drag", (event, d) => { d.fx=event.x; d.fy=event.y; })
       .on("end", (event, d) => { if (!event.active) graphSimulation.alphaTarget(0); d.fx=null; d.fy=null; }));
 
-  // 아담하고 예쁜 동그라미 원
   node.append("circle")
     .attr("r", d => d.r)
     .attr("fill", d => colorMap[d.type])
     .attr("stroke", d => strokeMap[d.type])
     .attr("stroke-width", 1.5);
 
-  // 또렷하고 깔끔한 단일 텍스트 라벨
   node.append("text")
     .text(d => d.label)
     .attr("text-anchor", "middle")
-    .attr("dy", d => d.r + 10)
-    .attr("font-size", "8.5px")
-    .attr("font-weight", "600")
+    .attr("dy", d => d.r + 12)
+    .attr("font-size", "10px")
+    .attr("font-weight", "700")
     .attr("fill", "#2c3531")
     .attr("pointer-events", "none");
 
-  // 키워드 노드 클릭 시 해당 태그 게시물 주르륵 한눈에 출력 연동
   node.on("click", (_, d) => {
     if (d.type === "record") {
       selectNote(d.entryId);
@@ -2136,113 +2323,19 @@ function renderGraph(entries) {
   });
 
   graphSimulation.on("tick", () => {
+    nodes.forEach(d => {
+      d.x = Math.max(d.r + 10, Math.min(width - d.r - 10, d.x));
+      d.y = Math.max(d.r + 10, Math.min(height - d.r - 25, d.y));
+    });
     link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
         .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
     node.attr("transform", d => `translate(${d.x},${d.y})`);
   });
 }
 
-// ── 백업 및 복원 ──
+// ── 백업 및 복원 (JSON 내보내기 / 가져오기) ──
 function openBackupModal() { document.getElementById("garden-backup-modal").classList.add("open"); }
 function closeBackupModal() { document.getElementById("garden-backup-modal").classList.remove("open"); }
-
-// ── 구글 계정 원클릭 로그인 & 클라우드 연동 엔진 ──
-let googleUserAccount = null;
-
-function handleGoogleOneTapSync() {
-  showToast("🔵 구글 로그인 계정 선택 창을 열고 있습니다...");
-  
-  // 구글 계정 선택 대화형 팝업 창 즉시 생성
-  const width = 500, height = 600;
-  const left = (window.innerWidth - width) / 2;
-  const top = (window.innerHeight - height) / 2;
-  
-  const authUrl = "https://accounts.google.com/gsi/select?client_id=100000000000-dummypda.apps.googleusercontent.com&auto_select=false&ux_mode=popup";
-  
-  const popup = window.open(
-    authUrl, 
-    "GoogleLoginSyncPopup", 
-    `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=1`
-  );
-
-  // 팝업이 차단되거나 로컬 환경일 때 폴백 모드로 구글 드라이브 동기화 진행
-  if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-      try {
-        google.accounts.id.initialize({
-          client_id: "100000000000-dummypda.apps.googleusercontent.com",
-          callback: (response) => {
-            localStorage.setItem("my-google-sync-active", "true");
-            showToast("🎉 구글 계정이 성공적으로 연동되었습니다!");
-            closeBackupModal();
-          }
-        });
-        google.accounts.id.prompt();
-      } catch(e) { syncWithGoogleDrive(); }
-    } else {
-      syncWithGoogleDrive();
-    }
-  } else {
-    // 팝업 감시 이벤트
-    const timer = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(timer);
-        localStorage.setItem("my-google-sync-active", "true");
-        showToast("🎉 구글 계정이 연동되어 클라우드 동기화 모드가 활성화되었습니다!");
-        closeBackupModal();
-        const badge = document.getElementById("garden-storage-badge");
-        if (badge) badge.textContent = "☁️ 구글 계정 자동 동기화 활성";
-      }
-    }, 1000);
-  }
-}
-
-// PWA 앱 이전 버전을 3초 만에 싹 비우고 최신 버전으로 갱신하는 강제 업데이트 함수
-async function forceUpdatePWA() {
-  showToast("🔄 PWA 앱 이전 캐시를 비우고 최신 버전으로 갱신하는 중입니다...");
-  if ('caches' in window) {
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => caches.delete(k)));
-  }
-  if ('serviceWorker' in navigator) {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    for (let r of regs) await r.unregister();
-  }
-  showToast("✅ 갱신 완료! 1초 뒤 새로고침됩니다.");
-  setTimeout(() => window.location.reload(true), 1200);
-}
-
-// ── 구글 로그인 & 구글 드라이브 Direct 연동 엔진 ──
-function openGoogleDriveModal() {
-  triggerGoogleDriveDirectSync();
-}
-
-async function triggerGoogleDriveDirectSync() {
-  if (!currentNotes || !currentNotes.length) {
-    showToast("⚠️ 동기화할 노트가 없습니다.");
-    return;
-  }
-
-  const fileName = `pda_google_drive_backup_${todayISO()}.json`;
-  const backupData = {
-    version: 2,
-    syncedAt: new Date().toISOString(),
-    gardenTitle: localStorage.getItem(TITLE_KEY) || "예니의 디지털 정원",
-    entries: currentNotes
-  };
-
-  const blob = new Blob([JSON.stringify(backupData, null, 2)], { type:"application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
-  a.click();
-  URL.revokeObjectURL(url);
-
-  // 404 에러 없는 안전한 구글 드라이브 직접 접속 안내
-  window.open("https://drive.google.com/", "_blank");
-  showToast(`🔒 다운로드된 '${fileName}' 백업 파일을 열린 구글 드라이브(drive.google.com) 창으로 드래그하시면 100% 저장 완료됩니다!`);
-}
 
 async function exportGardenJSON() {
   if (!currentNotes.length) { showToast("내보낼 노트가 없습니다."); return; }
@@ -2361,11 +2454,102 @@ async function refreshAll() {
   renderGraph(currentNotes);
 }
 
+// ── 좌/우 사이드바 드래그 리사이즈 엔진 ──
+function initSidebarResizers() {
+  const leftSidebar = document.querySelector(".sidebar");
+  const rightSidebar = document.querySelector(".info-sidebar");
+  const resizerLeft = document.getElementById("resizer-left");
+  const resizerRight = document.getElementById("resizer-right");
+
+  const SAVED_LEFT_W = localStorage.getItem("pda-sidebar-left-width");
+  const SAVED_RIGHT_W = localStorage.getItem("pda-sidebar-right-width");
+
+  if (SAVED_LEFT_W && leftSidebar) {
+    leftSidebar.style.width = `${Math.max(180, Math.min(600, parseInt(SAVED_LEFT_W)))}px`;
+  }
+  if (SAVED_RIGHT_W && rightSidebar) {
+    rightSidebar.style.width = `${Math.max(260, Math.min(700, parseInt(SAVED_RIGHT_W)))}px`;
+  }
+
+  // 좌측 사이드바 드래그 리사이즈
+  if (resizerLeft && leftSidebar) {
+    resizerLeft.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      resizerLeft.classList.add("resizing");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      const startX = e.clientX;
+      const startWidth = leftSidebar.getBoundingClientRect().width;
+
+      function onMouseMove(moveEvent) {
+        const delta = moveEvent.clientX - startX;
+        const newWidth = Math.max(180, Math.min(600, startWidth + delta));
+        leftSidebar.style.width = `${newWidth}px`;
+      }
+
+      function onMouseUp() {
+        resizerLeft.classList.remove("resizing");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        localStorage.setItem("pda-sidebar-left-width", parseInt(leftSidebar.style.width));
+      }
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    });
+  }
+
+  // 우측 사이드바 드래그 리사이즈
+  if (resizerRight && rightSidebar) {
+    let redrawTimer = null;
+    resizerRight.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      resizerRight.classList.add("resizing");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      const startX = e.clientX;
+      const startWidth = rightSidebar.getBoundingClientRect().width;
+
+      function onMouseMove(moveEvent) {
+        const delta = startX - moveEvent.clientX;
+        const newWidth = Math.max(260, Math.min(700, startWidth + delta));
+        rightSidebar.style.width = `${newWidth}px`;
+
+        clearTimeout(redrawTimer);
+        redrawTimer = setTimeout(() => {
+          if (typeof renderJarInfographic === 'function') renderJarInfographic(currentNotes);
+          if (typeof renderGraph === 'function') renderGraph(currentNotes);
+        }, 50);
+      }
+
+      function onMouseUp() {
+        resizerRight.classList.remove("resizing");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        localStorage.setItem("pda-sidebar-right-width", parseInt(rightSidebar.style.width));
+
+        if (typeof renderJarInfographic === 'function') renderJarInfographic(currentNotes);
+        if (typeof renderGraph === 'function') renderGraph(currentNotes);
+      }
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    });
+  }
+}
+
 // ── 초기화 실행 ──
 document.addEventListener("DOMContentLoaded", async () => {
   initProfile();
   initGardenTitle();
   initImportAction();
+  initSidebarResizers();
 
   try {
     await openDB();
@@ -2388,21 +2572,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // PWA Service Worker 및 설치 프롬프트
-  initPWAServiceWorker();
   initCrossWindowSync();
 });
 
-// PWA 앱 <-> 일반 웹 브라우저 탭 실시간 양방향 데이터 동기화 엔진
+// 브라우저 탭 간 실시간 양방향 데이터 동기화
 let pdaSyncChannel = null;
 function initCrossWindowSync() {
   if ('BroadcastChannel' in window) {
     pdaSyncChannel = new BroadcastChannel('pda_sync_channel');
     pdaSyncChannel.onmessage = async (event) => {
       if (event.data && event.data.type === 'DATA_UPDATED') {
-        console.log('[Sync] 실시간 데이터 변경 감지됨! 화면 자동 동기화 실행');
         await refreshAll();
-        showToast("🔄 다른 창/PWA 앱에서 변경된 최신 데이터가 반영되었습니다.");
+        showToast("🔄 다른 탭에서 변경된 최신 데이터가 반영되었습니다.");
       }
     };
   }
@@ -2421,46 +2602,6 @@ function broadcastDataChange() {
   if (pdaSyncChannel) {
     pdaSyncChannel.postMessage({ type: 'DATA_UPDATED', timestamp: Date.now() });
   }
-}
-
-let deferredPrompt = null;
-function initPWAServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').then((reg) => {
-        console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
-      }).catch((err) => {
-        console.warn('[PWA] ServiceWorker registration failed:', err);
-      });
-    });
-  }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const installBtn = document.getElementById('pwa-install-btn');
-    if (installBtn) {
-      installBtn.style.display = 'inline-flex';
-      installBtn.classList.add('pulse');
-    }
-    showToast("📱 '예니 PDA'를 스마트폰/PC 전용 앱으로 설치할 수 있습니다!");
-  });
-}
-
-function installPWAApp() {
-  if (!deferredPrompt) {
-    showToast("이미 설치되어 있거나 브라우저에서 PWA 자동 설치를 기다리는 중입니다. (주소창 우측 앱 설치 아이콘을 클릭하셔도 됩니다!)");
-    return;
-  }
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then((choiceResult) => {
-    if (choiceResult.outcome === 'accepted') {
-      showToast("🎉 앱 설치가 완료되었습니다!");
-      const installBtn = document.getElementById('pwa-install-btn');
-      if (installBtn) installBtn.style.display = 'none';
-    }
-    deferredPrompt = null;
-  });
 }
 </script>
 </body>
